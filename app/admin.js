@@ -114,14 +114,17 @@
 
   /* -------------------- 登录 -------------------- */
   function renderLogin() {
+    document.body.classList.add("lg-login-mode")
     $("#lg-admin").html(
-      '<div id="lg-login"><div class="card"><div class="card-body">' +
-        '<h4 class="header-title mb-3 text-center">管理后台登录</h4>' +
+      '<div id="lg-login"><div class="card"><div class="card-body text-center">' +
+        '<div class="lg-login-heart">&#10084;</div>' +
+        '<h4 class="header-title mb-1">管理后台</h4>' +
+        '<p class="lg-login-sub mb-3">LikeGirl CE · 愿得一心人 白头不相离</p>' +
         '<form id="lg-login-form">' +
         '<div class="form-group mb-3"><input type="password" name="password" class="form-control" placeholder="管理员密码" required></div>' +
-        '<div class="form-group mb-3 text_right"><button class="btn btn-primary btn-block" type="submit">登录</button></div>' +
+        '<div class="form-group mb-3"><button class="btn btn-primary" type="submit">登 录</button></div>' +
         "</form>" +
-        '<p class="text-center"><a href="/index.html">返回前台</a></p>' +
+        '<p class="mb-0"><a href="/index.html">返回前台</a></p>' +
         "</div></div></div>"
     )
     $("#lg-login-form").on("submit", async function (e) {
@@ -143,6 +146,7 @@
   /* -------------------- 框架（顶栏 + 侧栏 + 内容） -------------------- */
   function render() {
     if (!token || !data) return renderLogin()
+    document.body.classList.remove("lg-login-mode")
     var s = data.site
     var chrome =
       '<div class="navbar-custom topnav-navbar"><div class="container-fluid">' +

@@ -1,0 +1,169 @@
+/*
+ * LikeGirl CE — 后台专属美化样式（仅作用于 admin.html / 后台登录）
+ * 在 admin/assets/css/app.min.css 之后加载，做覆盖与增强。
+ * 主题色沿用原版的粉 #ff5295，配薰衣草紫与暖白，营造柔和浪漫的管理端观感。
+ */
+
+:root {
+  --lg-pink: #ff5295;
+  --lg-pink-soft: #ff8fb3;
+  --lg-lav: #b39ddb;
+  --lg-plum: #46314f;
+  --lg-card-shadow: 0 8px 28px rgba(190, 120, 170, 0.12);
+}
+
+/* ============ 后台整体背景 ============ */
+body:not(.lg-login-mode) {
+  background:
+    radial-gradient(1100px 500px at 8% -10%, rgba(255, 143, 179, 0.16), transparent 60%),
+    radial-gradient(900px 480px at 96% 0%, rgba(179, 157, 219, 0.16), transparent 60%),
+    radial-gradient(800px 600px at 50% 110%, rgba(255, 214, 230, 0.20), transparent 60%),
+    linear-gradient(180deg, #fdf3f8 0%, #f6f7ff 55%, #f3f6fb 100%);
+  background-attachment: fixed;
+}
+
+/* 顶栏：深色渐变 + 细粉边 */
+.navbar-custom.topnav-navbar {
+  background: linear-gradient(90deg, #3c2a44 0%, #4a3550 55%, #553a5c 100%);
+  box-shadow: 0 2px 14px rgba(60, 42, 68, 0.28);
+  border-bottom: 1px solid rgba(255, 143, 179, 0.35);
+}
+.topnav-navbar .topnav-logo-lg,
+.topnav-navbar .topnav-logo-sm {
+  letter-spacing: 0.5px;
+}
+
+/* 侧栏：纯白 + 柔和投影，激活项粉色渐变 */
+.left-side-menu {
+  background: #ffffff;
+  box-shadow: 4px 0 22px rgba(150, 110, 150, 0.08);
+}
+.side-nav .side-nav-link {
+  color: #6b6470;
+  border-radius: 10px;
+  margin: 2px 10px;
+  transition: background 0.18s ease, color 0.18s ease;
+}
+.side-nav .side-nav-link:hover {
+  background: rgba(255, 82, 149, 0.08);
+  color: var(--lg-pink);
+}
+.side-nav .side-nav-link.active,
+.side-nav .side-nav-link[aria-expanded="true"] {
+  background: linear-gradient(90deg, rgba(255, 82, 149, 0.14), rgba(179, 157, 219, 0.12));
+  color: var(--lg-pink);
+  font-weight: 600;
+}
+.leftbar-user-name { color: #4a4450; }
+
+/* 卡片：去边框 + 柔影 + 圆角 */
+.card {
+  border: none;
+  border-radius: 16px;
+  box-shadow: var(--lg-card-shadow);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+}
+.card .card-body { padding: 1.4rem 1.5rem; }
+h4.header-title.mb-3 { color: #4a3550; }
+
+/* 表格：表头淡粉、行悬浮 */
+.table thead th {
+  background: linear-gradient(90deg, rgba(255, 82, 149, 0.07), rgba(179, 157, 219, 0.06));
+  color: #6d5a72;
+  border-bottom: 1px solid rgba(255, 82, 149, 0.15);
+  font-weight: 600;
+}
+.table tbody tr { transition: background 0.15s ease; }
+.table tbody tr:hover { background: rgba(255, 82, 149, 0.045); }
+
+/* 按钮：主按钮粉色渐变、圆角、悬浮抬升 */
+.btn-primary {
+  background: linear-gradient(135deg, var(--lg-pink), #ff77a9);
+  border: none;
+  box-shadow: 0 4px 14px rgba(255, 82, 149, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(255, 82, 149, 0.45); }
+.btn-success {
+  background: linear-gradient(135deg, #34c98e, #4ad6a0);
+  border: none;
+  box-shadow: 0 4px 14px rgba(52, 201, 142, 0.3);
+}
+.btn-danger {
+  background: linear-gradient(135deg, #f2607a, #ff7d92);
+  border: none;
+  box-shadow: 0 4px 14px rgba(242, 96, 122, 0.3);
+}
+.btn-secondary { background: #8f8798; border: none; }
+.btn { border-radius: 10px; }
+
+/* 表单控件聚焦粉色 */
+.form-control:focus {
+  border-color: var(--lg-pink);
+  box-shadow: 0 0 0 0.15rem rgba(255, 82, 149, 0.15);
+}
+
+/* 徽章柔化 */
+.badge-danger-lighten, .badge-success-lighten, .badge-primary-lighten { border-radius: 8px; }
+
+/* ============ 登录页 ============ */
+body.lg-login-mode {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #ffe1ec 0%, #f3e6ff 45%, #e3f0ff 100%);
+  overflow: hidden;
+  position: relative;
+}
+/* 漂浮柔光斑 */
+body.lg-login-mode::before,
+body.lg-login-mode::after {
+  content: "";
+  position: fixed;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.55;
+  pointer-events: none;
+  animation: lg-float 12s ease-in-out infinite alternate;
+}
+body.lg-login-mode::before {
+  width: 46vw; height: 46vw; left: -12vw; top: -14vw;
+  background: radial-gradient(circle at 30% 30%, #ffb3cd, transparent 70%);
+}
+body.lg-login-mode::after {
+  width: 40vw; height: 40vw; right: -10vw; bottom: -12vw;
+  background: radial-gradient(circle at 60% 60%, #c9b6f2, transparent 70%);
+  animation-delay: -6s;
+}
+@keyframes lg-float {
+  from { transform: translate3d(0, 0, 0) scale(1); }
+  to { transform: translate3d(4vw, 3vh, 0) scale(1.12); }
+}
+
+#lg-login { position: relative; z-index: 2; }
+#lg-login .card {
+  border-radius: 22px;
+  box-shadow: 0 24px 60px rgba(120, 80, 130, 0.22);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  animation: lg-pop 0.5s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+@keyframes lg-pop {
+  from { opacity: 0; transform: translateY(18px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+#lg-login .lg-login-heart {
+  width: 64px; height: 64px; margin: 0 auto 12px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--lg-pink), #ff8fb3);
+  box-shadow: 0 8px 24px rgba(255, 82, 149, 0.4);
+  color: #fff; font-size: 30px;
+}
+#lg-login h4 { color: #4a3550; letter-spacing: 1px; }
+#lg-login .form-control {
+  border-radius: 12px; padding: 0.7rem 1rem;
+  background: rgba(255, 255, 255, 0.9);
+}
+#lg-login .btn-primary { width: 100%; padding: 0.65rem; font-size: 1.02rem; }
+#lg-login .lg-login-sub { color: #9a8fa3; font-size: 0.85rem; }
