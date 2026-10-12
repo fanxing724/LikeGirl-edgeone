@@ -29,7 +29,7 @@
 | 部分 | 实现 |
 | --- | --- |
 | 前端 | 原生 HTML/CSS/JavaScript |
-| API | EdgeOne Node Functions，Node.js 20 |
+| API | EdgeOne Node Functions，Node.js 22 |
 | 存储 | `@edgeone/pages-blob`，强一致读取 |
 | 路由 | `node-functions/[[default]].js` catch-all |
 | 构建 | Node.js 脚本生成 `dist/` 静态产物 |
@@ -42,7 +42,7 @@
 安装命令：npm install
 构建命令：npm run build
 输出目录：dist
-Node.js：20
+Node.js：22.21.1
 ```
 
 部署前必须配置：

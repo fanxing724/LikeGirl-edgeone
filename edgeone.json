@@ -3,7 +3,7 @@
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
-  "nodeVersion": "20.19.0",
+  "nodeVersion": "22.21.1",
   "headers": [
     {
       "source": "/api/*",
