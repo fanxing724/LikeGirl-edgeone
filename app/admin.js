@@ -149,7 +149,7 @@
       '<a href="#dashboard" class="topnav-logo"><span class="topnav-logo-lg">' + esc(s.title) + '</span><span class="topnav-logo-sm">' + esc(s.title) + "</span></a>" +
       '<ul class="list-unstyled topbar-right-menu float-right mb-0">' +
       '<li class="dropdown notification-list"><a class="nav-link" href="#settings"><i class="dripicons-gear noti-icon"></i></a></li>' +
-      '<li class="dropdown notification-list"><a class="nav-link dropdown-toggle" href="#settings"><span class="account-user-avatar"><img src="' + esc(qqAvatar(s.userQQ, 640)) + '" class="rounded-circle"></span>' +
+      '<li class="dropdown notification-list"><a class="nav-link dropdown-toggle nav-user arrow-none mr-0" href="#settings"><span class="account-user-avatar"><img src="' + esc(qqAvatar(s.userQQ, 640)) + '" alt="user-image" class="rounded-circle"></span>' +
       '<span><span class="account-user-name">' + esc(s.userName) + '</span><span class="account-position">操作</span></span></a></li>' +
       "</ul>" +
       '<a class="button-menu-mobile disable-btn"><div class="lines"><span></span><span></span><span></span></div></a>' +
