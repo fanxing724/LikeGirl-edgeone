@@ -19,6 +19,18 @@
   function qqAvatar(qq, s) {
     return qq ? "https://q1.qlogo.cn/g?b=qq&nk=" + encodeURIComponent(qq) + "&s=" + (s || 640) : ""
   }
+  // 站长头像：有 QQ 用 QQ 头像，否则用名字首字的粉紫渐变占位头像
+  function ownerAvatar(name, qq) {
+    if (qq) return qqAvatar(qq, 640)
+    var ch = (name || "星").charAt(0)
+    var svg =
+      "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>" +
+      "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>" +
+      "<stop offset='0' stop-color='#ff5295'/><stop offset='1' stop-color='#b39ddb'/></linearGradient></defs>" +
+      "<rect width='64' height='64' rx='32' fill='url(#g)'/>" +
+      "<text x='32' y='43' font-size='30' text-anchor='middle' fill='#ffffff' font-family='sans-serif'>" + ch + "</text></svg>"
+    return "data:image/svg+xml;utf8," + encodeURIComponent(svg)
+  }
   function timeTran(t) {
     if (!t) return ""
     var d = new Date(t)
@@ -153,13 +165,13 @@
       '<a href="#dashboard" class="topnav-logo"><span class="topnav-logo-lg">' + esc(s.title) + '</span><span class="topnav-logo-sm">' + esc(s.title) + "</span></a>" +
       '<ul class="list-unstyled topbar-right-menu float-right mb-0">' +
       '<li class="dropdown notification-list"><a class="nav-link" href="#settings"><i class="dripicons-gear noti-icon"></i></a></li>' +
-      '<li class="dropdown notification-list"><a class="nav-link dropdown-toggle nav-user arrow-none mr-0" href="#settings"><span class="account-user-avatar"><img src="' + esc(qqAvatar(s.userQQ, 640)) + '" alt="user-image" class="rounded-circle"></span>' +
+      '<li class="dropdown notification-list"><a class="nav-link dropdown-toggle nav-user arrow-none mr-0" href="#settings"><span class="account-user-avatar"><img src="' + esc(ownerAvatar(s.userName, s.userQQ)) + '" alt="user-image" class="rounded-circle"></span>' +
       '<span><span class="account-user-name">' + esc(s.userName) + '</span><span class="account-position">操作</span></span></a></li>' +
       "</ul>" +
       '<a class="button-menu-mobile disable-btn"><div class="lines"><span></span><span></span><span></span></div></a>' +
       '<div class="app-search"></div></div></div>' +
       '<div class="container-fluid"><div class="wrapper">' +
-      '<div class="left-side-menu"><div class="leftbar-user"><a href="#"><img src="' + esc(qqAvatar(s.userQQ, 640)) + '" height="42" class="rounded-circle shadow-sm"><span class="leftbar-user-name">' + esc(s.title) + "</span></a></div>" +
+      '<div class="left-side-menu"><div class="leftbar-user"><a href="#"><img src="' + esc(ownerAvatar(s.userName, s.userQQ)) + '" height="42" class="rounded-circle shadow-sm"><span class="leftbar-user-name">' + esc(s.title) + "</span></a></div>" +
       '<ul class="metismenu side-nav">' +
       sideItem("dashboard", "dripicons-direction", "后台首页") +
       sideItem("settings", "dripicons-meter", "基本设置") +
