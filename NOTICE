@@ -1,0 +1,36 @@
+LikeGirl EdgeOne
+Copyright (C) 2026 fanxing724 and contributors
+
+This distribution contains an EdgeOne adaptation of LikeGirl-CE and retains
+source code and assets derived from earlier LikeGirl projects.
+
+Upstream projects
+-----------------
+
+LikeGirl / likegirl-stable
+Original author: Ki.
+Source: https://gitee.com/kiCode111/likegirl-stable
+
+LikeGirl-CE
+Community maintainer: ShiFengShuA
+Source: https://gitee.com/shifengshua/LikeGirl-CE
+
+EdgeOne adaptation
+------------------
+
+The static application, EdgeOne Node Functions integration, Pages Blob
+storage adapter, upload pipeline, build configuration, and related
+documentation were added for LikeGirl EdgeOne.
+Source: https://github.com/fanxing724/LikeGirl-edgeone
+
+License and notices
+-------------------
+
+The repository is distributed under the GNU Affero General Public License,
+version 3 only. See LICENSE for the complete license text.
+
+Existing copyright, attribution, and license notices in upstream source files
+and bundled third-party components must be retained. Third-party components
+and media may be governed by their own notices or licenses. This NOTICE does
+not replace or narrow those terms and does not claim copyright over upstream
+contributions.

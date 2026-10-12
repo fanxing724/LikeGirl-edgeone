@@ -2,6 +2,12 @@
   "name": "likegirl-ce-edgeone",
   "version": "1.0.0",
   "private": true,
+  "description": "LikeGirl 情侣纪念小站的 EdgeOne Makers/Pages 无服务器适配版",
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/fanxing724/LikeGirl-edgeone.git"
+  },
   "type": "module",
   "scripts": {
     "build": "node scripts/build-edgeone.mjs",

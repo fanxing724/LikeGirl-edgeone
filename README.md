@@ -1,130 +1,111 @@
-# LikeGirl-CE (社区版)
+# LikeGirl EdgeOne
 
-> EdgeOne Makers/Pages 部署：本分支已增加静态前端、Node 云函数和 Blob 存储适配，请查看 [EDGEONE.md](EDGEONE.md)。原 PHP + MySQL 版本仍保留。
+一个可部署到 EdgeOne Makers/Pages 的轻量情侣纪念小站。项目由 LikeGirl-CE 适配而来，使用静态前端、Node.js 云函数和 EdgeOne Pages Blob，不需要 PHP 服务器或 MySQL。
 
-## 原项目来源与原作者声明
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
+[![Deploy to EdgeOne](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://edgeone.ai/pages/new?project-name=likegirl-edgeone&repository-url=https://github.com/fanxing724/LikeGirl-edgeone&install-command=npm%20install&build-command=npm%20run%20build&output-directory=dist&env=ADMIN_PASSWORD,SESSION_SECRET)
 
-### 原项目地址与作者
-- 原项目作者: Ki.
-- 原项目地址: https://gitee.com/kiCode111/likegirl-stable
+## 功能
 
-### 原作者声明：
-- 自2024年11月7日起，情侣小站将不再接受新的功能更新或bug修复。
-- 本项目完全免费，有能力的朋友可以进行二次开发
-- 前端页面版权信息可以进行删除(前端底部)
-- 其他区域的版权信息请保留 如注释或js版权 请勿删除 给予开源的尊重
-- 在闲鱼上的你可以帮助小白搭建，但是不得出售源码，需声明为开源项目
-- 禁止以任何方式出售，一切后果自行负责，违背项目初衷作者必定追究
+- 实时显示情侣相恋天数和时间。
+- 记录文章、恋爱相册和共同愿望清单。
+- 访客祝福留言，包含同 IP 60 秒频率限制。
+- 管理后台可维护站点信息、文章、相册、清单和留言。
+- 可上传背景图、相册多图和清单图片。
+- 支持 JPG、PNG、WebP 和 GIF，单张最大 4 MB。
+- 数据和图片均持久化到 EdgeOne Pages Blob。
+- 图片替换或记录删除后，自动清理不再被引用的站内 Blob。
+- 后台使用 HMAC 签名会话，用户文本统一转义输出。
 
+## 架构
 
-# 社区版简介：
-- 原项目作者: Ki.
-- 原项目地址: https://gitee.com/kiCode111/likegirl-stable
-- 二创/社区维护: ShiFengShuA (是枫书啊)
-- 基于LikeGirl v5.2.1版本维护以及二创更新
-- 社区版如有BUG请联系QQ: 3593853319 (邮箱: shifengshua@outlook.com)
-- 本社区版项目完全免费，禁止以任何方式出售！
+```text
+浏览器
+  ├─ 静态页面 ────────────→ EdgeOne Pages CDN
+  ├─ 站点数据/留言/后台 ──→ Node.js Cloud Function
+  └─ 图片上传与读取 ─────→ EdgeOne Pages Blob
+```
 
+| 部分 | 实现 |
+| --- | --- |
+| 前端 | 原生 HTML/CSS/JavaScript |
+| API | EdgeOne Node Functions，Node.js 20 |
+| 存储 | `@edgeone/pages-blob`，强一致读取 |
+| 路由 | `node-functions/[[default]].js` catch-all |
+| 构建 | Node.js 脚本生成 `dist/` 静态产物 |
 
-### 后台地址及默认账号
-- 地址：你的域名/admin
-- 默认账号：admin
-- 默认密码：~~`love2025`或~~`LikeGirlCE`
+## 部署
 
+点击项目顶部的 **Deploy to EdgeOne** 按钮，或在 EdgeOne Makers 中导入本仓库。[`edgeone.json`](edgeone.json) 已预置：
 
-### 使用说明
-- 文章书写需了解HTML标签基本语法
-- 可以百度查询资料学习
-- 部署后会有一篇默认文章 可以参考书写格式
+```text
+安装命令：npm install
+构建命令：npm run build
+输出目录：dist
+Node.js：20
+```
 
+部署前必须配置：
 
-### 使用方法
+| 环境变量 | 说明 |
+| --- | --- |
+| `ADMIN_PASSWORD` | 管理后台强密码 |
+| `SESSION_SECRET` | 至少 32 字符的会话签名密钥 |
 
-#### 数据库连接+导入(在线配置)
-- CE-1.0.3之后的版本都将支持在线配置数据库连接信息，同时自动安装数据库。
-- 注意在线配置仅适用于第一次安装，重复安装会导致数据库被覆盖。
-- 默认账号：`admin`
-- 默认密码：`LikeGirlCE`
-- 请认真填写安全码 尽量设置的`复杂难以猜测` 修改密码等敏感信息需输入安全码
-- 部署后建议将目录`admin`下的`install`文件夹重命名，避免有人故意访问文件夹内的`install.php`文件，导致`admin/Config_DB.php`数据库连接信息重置
+```bash
+openssl rand -hex 32
+```
 
-#### 数据库连接(手动配置)
-- ~~打开根目录下的`admin`文件夹~~
-- ~~接着找到`Config_DB.php`文件 打开后按注释提示更改为你的数据库相关信息~~
-- ~~请认真填写安全码 尽量设置的`复杂难以猜测` 修改密码等敏感信息需输入安全码~~
+### 部署后验收
 
-#### 导入数据库(手动配置)
-- ~~打开根目录下的`DB`文件夹~~
-- ~~`LikeGirl-CE_DB.sql`与`love_db.sql` 为SQL文件 选择其中`一个`导入到数据库中即可~~
-- ~~`LikeGirl-CE_DB.sql`是社区版的数据库文件 后台登录密码为 `LikeGirlCE`~~
-- ~~`love_db.sql`是官方版的数据库文件 理论上能兼容 后台登录密码为 `love2025`~~
-- ~~默认账号：`admin`~~
-- ~~默认密码：`love2025`或`LikeGirlCE`~~
+1. 访问 `/api/health`，应返回 `{"ok":true,"storage":true}`。
+2. 从页脚进入“管理后台”。
+3. 上传一张测试图片，确认 `/api/media/image_...` 地址可访问。
+4. 新增文章或留言，刷新页面确认数据已持久化。
 
+详细存储、API 和排错说明见 [EDGEONE.md](EDGEONE.md)。
 
-## 版权与声明
-- 保留原作者署名与项目地址：https://gitee.com/kiCode111/likegirl-stable
-- 原项目已声明停止维护；本仓库为社区版本，仅提供修复与二创，不承担由此引发的任何风险或责任
+## 本地检查
 
+```bash
+npm install
+npm run check
+npm run build
+```
 
-## 更新日志：
+Pages Blob 凭据由 EdgeOne 运行环境注入，因此完整存储测试需在部署后进行。
 
-### CE-1.0.6-API
-- 更换API，原项目官方API已不再提供数据支持 (改动：`leaving.php` | 95~133行)
+## 目录
 
-### CE-1.0.6
-- 将`admin/connectDie.php`中修改教程图片的资源调用改为了绝对路径，不再使用URL
-- 将`恋爱相册`界面后端数据库`admin/install/likegirl-cd_db.sql`和`DB/likegirl-cd_db.sql`中对应的`情侣小站社区维护版上线了！`卡片所使用的图片资源调用改为绝对路径，不再使用URL
+```text
+index.html                         EdgeOne 版前端入口
+edgeone-app.js                     页面与后台逻辑
+edgeone-app.css                    页面样式
+node-functions/[[default]].js      Node 云函数 API
+scripts/build-edgeone.mjs          静态产物构建脚本
+edgeone.json                       EdgeOne 项目配置
+EDGEONE.md                         详细部署文档
+```
 
-### CE-1.0.5-Patch
-- 同步官方BUG修复
-- (移除`admin/Nav.php`第21行多余空格)
+仓库仍保留上游 PHP + MySQL 代码，用于保留项目历史、署名和兼容参考。EdgeOne 部署不会执行这些 PHP 文件。
 
-### CE-1.0.5-API
-- 更换新的API
-- 注：目前尚未找到可长期使用的稳定API，所以API暂时换成了原项目的中转API
+## 安全
 
-### CE-1.0.5
-- 1.修复了因`loveImg.css`文件中的一个重复`#pjax-container`元素，导致的前端底部出现大片空白 (`Style/css/loveImg.css`)
-- 2.修复了`index.php`文件第58行的图标文件名错误
-- 3.对数据库文件中的对话部分做了一些无关紧要的修改 (`DB/LikeGirl-CE_DB.sql`和`admin/install/likegirl-cd_db.sql`)
+- 不要在代码、`.env.example` 或 Issue 中提交真实密码。
+- `SESSION_SECRET` 不足 32 字符时，后台会拒绝登录。
+- 上传接口校验管理会话、文件大小、MIME 类型和文件签名。
+- 项目不渲染后台输入的任意 HTML，以减少存储型 XSS 风险。
 
-### CE-1.0.4
-- 1.细节修改与一些无关紧要更新
+## 上游与致谢
 
-### CE-1.0.3-Patch-API
-- 1.更换了API请求方式和新API，不再使用原项目中转API，新API目前可正常使用(原项目作者修复太慢了)
-- 2.若API挂了，可以在网站根目录下的`leaving.php`文件第101行更换新API
+- 原项目：[Ki./likegirl-stable](https://gitee.com/kiCode111/likegirl-stable)
+- 社区版：[ShiFengShuA/LikeGirl-CE](https://gitee.com/shifengshua/LikeGirl-CE)
+- EdgeOne 适配：[fanxing724/LikeGirl-edgeone](https://github.com/fanxing724/LikeGirl-edgeone)
 
-### CE-1.0.3-Patch
-- 1.修改了一些细节，功能无更新 
-- (文件 LikeGirl-CE-1.0.3-Patch.zip)
-- ————————
-- 2.新增Docker镜像，拉取代码`docker push shifengshua/likegirl-ce:1.0.3`
-- (Docker镜像仅包含`网站源码` / `PHP` / `PHP常用扩展`，`Nginx` / `MySQL` / `phpMyAdmin`请自行安装容器)
-- ————————
-- 3.新增Docker本地部署包，相比于Docker镜像，使用图片相对路径更容易 
-- (文件 LikeGirl-CE-1.0.3-Docker-PS.zip)
-- (Docker本地部署包需解压后，在解压目录下使用终端执行 `docker-compose up -d` 命令，运行后会自动安装所需环境以及 `phpMyAdmin` )
-- (MySQL数据库用户名和密码等，请解压后在 `docker-compose.yml` 文件中自行修改)
-- (由于使用镜像挂载运行源码和Nginx配置文件，解压后的目录与目录内原文件请勿删除！)
+请保留上游作者署名与源文件中的版权声明。详细来源和权利说明见 [NOTICE](NOTICE)。
 
-### CE-1.0.3
-- 1.新增在线配置数据库信息页面，可快捷连接与安装数据库
-- 2.同步原项目BUG补丁，修复部分情况下手机端在管理后台无法删除留言BUG
-- (在线配置页面源码来源于Cleanwn 仓库地址https://github.com/Cleanwn/LikeGirl)
-- (注意！非第一次安装 请勿使用在线配置 否则数据库将被覆盖)
+## 开源许可
 
-### CE-1.0.2-Beta
-- 同步官方BUG修复`Style/css/loveImg.css` 
-- “恋爱事件”图片路径优化为`URL`/`绝对路径`/`相对路径`均可使用
-- “恋爱事件”数据库`DB/LikeGirl-CE_DB.sql`图片地址部分长度限制修改为`16000`(原300)
+本仓库以 [GNU Affero General Public License v3.0 only](LICENSE) 提供。如果修改后通过网络向用户提供服务，AGPL-3.0 要求向这些用户提供对应版本的源代码。
 
-### CE-1.0.1-Beta
- - 修复了恋爱相册界面首次进入需要刷新的BUG (这个是CE-1.0.0-Beta社区版二次开发时出现的新BUG 并不是原项目的BUG)
- - 浏览器F12出现报错属于正常现象，不影响运行与使用，后续版本或许会修复报错
-
-### CE-1.0.0-Beta
-- “恋爱相册”卡片部分更改，缩略图最多可以显示9张(后台支持多图片,`URL`/`绝对路径`/`相对路径`均可使用)，多余的照片数量显示在卡片右下角，点击卡片任意图片后可查看该卡片中的所有图片。
-- “恋爱相册”后台部分同步更改
-- “恋爱相册”数据库`DB/LikeGirl-CE_DB.sql`图片地址部分长度限制修改为`16000`(原300)
+上游代码、第三方库、字体、图片和其他资源可能有独立声明；对应文件的原声明优先适用。
