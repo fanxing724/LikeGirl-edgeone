@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="LikeGirl CE 情侣纪念小站">
+  <title>LikeGirl CE</title>
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/edgeone-app.css">
+</head>
+<body>
+  <div class="backdrop"></div>
+  <header class="topbar">
+    <a class="brand" href="#home" id="brand">LikeGirl CE</a>
+    <nav>
+      <a href="#home">首页</a><a href="#stories">点点滴滴</a><a href="#photos">相册</a>
+      <a href="#wishes">清单</a><a href="#messages">留言</a><a href="#about">关于</a>
+    </nav>
+  </header>
+
+  <main id="app" aria-live="polite"><div class="loading">正在加载我们的故事……</div></main>
+
+  <footer>
+    <span id="copyright"></span>
+    <a href="#admin">管理后台</a>
+  </footer>
+
+  <dialog id="photo-dialog"><button class="dialog-close" aria-label="关闭">×</button><img alt="相册大图"></dialog>
+  <div id="toast" role="status"></div>
+  <script type="module" src="/edgeone-app.js"></script>
+</body>
+</html>

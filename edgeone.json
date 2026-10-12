@@ -1,0 +1,24 @@
+{
+  "name": "likegirl-ce",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
+  "nodeVersion": "20.19.0",
+  "headers": [
+    {
+      "source": "/api/*",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    },
+    {
+      "source": "/Style/*",
+      "headers": [
+        { "key": "Cache-Control", "value": "public,max-age=604800" }
+      ]
+    }
+  ],
+  "cloudFunctions": {
+    "maxDuration": 30
+  }
+}

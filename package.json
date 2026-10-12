@@ -1,0 +1,13 @@
+{
+  "name": "likegirl-ce-edgeone",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build-edgeone.mjs",
+    "check": "node --check node-functions/[[default]].js && node --check edgeone-app.js"
+  },
+  "dependencies": {
+    "@edgeone/pages-blob": "^0.0.14"
+  }
+}

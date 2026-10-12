@@ -1,5 +1,7 @@
 # LikeGirl-CE (社区版)
 
+> EdgeOne Makers/Pages 部署：本分支已增加静态前端、Node 云函数和 Blob 存储适配，请查看 [EDGEONE.md](EDGEONE.md)。原 PHP + MySQL 版本仍保留。
+
 ## 原项目来源与原作者声明
 
 ### 原项目地址与作者

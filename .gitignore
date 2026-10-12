@@ -1,0 +1,5 @@
+node_modules/
+dist/
+.env
+.edgeone/
+npm-debug.log*
