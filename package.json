@@ -11,7 +11,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-edgeone.mjs",
-    "check": "node --check node-functions/[[default]].js && node --check edgeone-app.js"
+    "check": "node --check node-functions/[[default]].js && node --check app/common.js && node --check app/home.js && node --check app/little.js && node --check app/page.js && node --check app/leaving.js && node --check app/loveImg.js && node --check app/list.js && node --check app/about.js && node --check app/admin.js"
   },
   "dependencies": {
     "@edgeone/pages-blob": "^0.0.14"

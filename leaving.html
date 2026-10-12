@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<!-- 留言板（复刻 leaving.php） -->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,minimum-scale=1.0,maximum-scale=1.0,user-scalable=no" />
+  <title>LikeGirl CE — 留言板</title>
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <link href="https://fonts.googleapis.com/css?family=Concert+One|Pacifico" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/Style/css/leaving.css" />
+  <link rel="stylesheet" href="/Style/css/loveImg.css" />
+  <link rel="stylesheet" href="/Style/css/index.css" />
+  <link rel="stylesheet" href="/Style/css/little.css" />
+  <link rel="stylesheet" href="/Style/css/about.css" />
+  <link rel="stylesheet" href="/Style/css/animate.min.css" />
+  <link rel="stylesheet" href="/Style/css/leavpost.css" />
+  <link rel="stylesheet" href="/Style/Font/font_list/iconfont.css" />
+  <link rel="stylesheet" href="/Style/toastr/toastr.css" />
+  <link rel="stylesheet" href="/Style/css/loadinglike.css" />
+  <link rel="stylesheet" href="/Style/css/nprogress.css" />
+  <script src="/Style/Font/font_leav/iconfont.js"></script>
+  <script src="/Style/js/vue.min.js"></script>
+  <script src="/Style/jquery/jquery.min.js"></script>
+  <script src="/Style/pagelir/spotlight.bundle.js"></script>
+  <script src="/Style/js/funlazy.min.js"></script>
+  <script src="/Style/js/loading.js"></script>
+  <script src="/Style/js/nprogress.js"></script>
+  <script src="/Style/toastr/toastr.js"></script>
+</head>
+<body>
+  <div id="lg-header"></div>
+  <div id="pjax-container">
+    <div class="MessageButtonCard" id="MessageBtn">
+      <svg class="Message-Icon icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M512 96C229.2 96 0 282.3 0 512c0 92.1 36.8 177.1 99.1 246 4 4.5 5.3 10.9 3.1 16.5-5.7 14.7-12 29.2-19 43.3-12.9 26.3-28.2 51.7-45.3 75.5-6.2 8.6-7.7 19.7-4.1 29.6 3.6 10 11.9 17.5 22.2 20.1 9.4 2.4 25.2 5.4 44.8 5.4 26 0 58.7-5.4 91.5-25 21.4-12.8 37.5-28.6 49.3-44 4.5-5.9 12.5-7.9 19.3-4.8 74.2 34 159.8 53.4 251 53.4 282.8 0 512-186.3 512-416S794.8 96 512 96z" fill="currentColor"></path></svg>
+    </div>
+    <div class="central central-800 bg">
+      <div class="title mt-2rem"><h1 id="leav-title">留言板</h1></div>
+      <h3 id="leav-count">加载中…</h3>
+      <div class="row">
+        <div class="card col-lg-12 col-md-12 col-sm-12 col-sm-x-12">
+          <div id="message-list"></div>
+          <form id="leav-form">
+            <div class="inputbox" id="MessageArea">
+              <img id="qq-avatar" src="https://q1.qlogo.cn/g?b=qq&nk=1234567&s=100" alt="" class="avatar">
+              <input id="QQ" type="text" name="qq" placeholder="请输入QQ号码" class="rig" autocomplete="off">
+              <input id="nickname" type="text" name="name" placeholder="输入QQ号码后自动获取" class="let" autocomplete="off">
+            </div>
+            <textarea name="text" id="wenben" rows="8" placeholder="请输入您的留言内容..."></textarea>
+            <div class="input-sub">
+              <button type="button" id="leavingPost" class="tijiao">提交留言
+                <svg style="width:1.3em;height:1.3em;" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M620.8 179.2c12.8 12.8 6.4 32-6.4 44.8-19.2 6.4-38.4 6.4-44.8-12.8-44.8-70.4-128-115.2-217.6-115.2-140.8 0-256 115.2-256 256 0 89.6 44.8 166.4 115.2 217.6 19.2 6.4 19.2 25.6 12.8 38.4-12.8 19.2-32 19.2-44.8 12.8C89.6 563.2 32 460.8 32 352c0-179.2 140.8-320 320-320 108.8 0 211.2 57.6 268.8 147.2zM326.4 332.8l243.2 601.6 83.2-243.2c6.4-19.2 19.2-32 38.4-38.4L934.4 576 326.4 332.8z m25.6-57.6L960 518.4c32 12.8 51.2 51.2 38.4 83.2-6.4 19.2-19.2 32-38.4 38.4l-243.2 83.2L633.6 960c-12.8 32-44.8 51.2-83.2 38.4-19.2-6.4-32-19.2-38.4-38.4L268.8 358.4c-12.8-32 6.4-70.4 38.4-83.2 12.8-6.4 32-6.4 44.8 0z" fill="#ffffff"></path></svg>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="lg-footer"></div>
+  <script src="/app/common.js"></script>
+  <script src="/app/leaving.js"></script>
+</body>
+</html>

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<!--
+  Like Girl 5.2.1-Stable · EdgeOne 适配 · 后台管理
+  复刻自原版 admin/Nav.php 布局与 admin/assets 视觉，数据由 /api/admin/* 驱动。
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>后台管理 — LikeGirl CE</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet" />
+  <link href="/admin/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
+  <link href="/admin/assets/css/app.min.css" rel="stylesheet" type="text/css" />
+  <link href="/Style/css/loading.css" rel="stylesheet" />
+  <link href="/Style/toastr/toastr.css" rel="stylesheet" />
+  <link rel="shortcut icon" href="/favicon.ico" />
+  <style>
+    .textHide { width: 300px; white-space: normal; }
+    .textHide.index { overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+    .toast-title { font-size: 1.1rem; margin-bottom: .3rem; }
+    .color { color: #999; }
+    .form-control:focus { border-color: #ff5295; }
+    .form-control { color: #b6b6b6; }
+    .side-nav .side-nav-link i { height: 20px; }
+    span.badge.badge-danger-lighten, span.badge.badge-primary-lighten { font-size: 0.9rem; font-family: 'Noto Serif SC', serif; font-weight: 400; }
+    ul.text { line-height: 2rem; font-size: 0.9rem; }
+    ul, i, label { font-family: 'Noto Serif SC', serif; font-weight: 400; }
+    h3.mt-0, h5 { font-family: 'Noto Serif SC', serif; font-weight: 700; }
+    .hhtext { white-space: normal !important; }
+    .notification-list .dropdown-menu.dropdown-menu-right { border-radius: 0px 0px 10px 10px; box-shadow: 0 8px 12px #efefef; }
+    button.btn.btn-success.mb-2.mr-2 { border-radius: 10px; }
+    .badge-success-lighten, .badge-warning-lighten { font-size: 0.9rem; font-family: 'Noto Serif SC', serif; font-weight: 400; padding: 0.4rem; }
+    h4.header-title.mb-3 { text-align: center; font-size: 1.2rem; font-family: 'Noto Serif SC', serif; font-weight: 700; }
+    h4.header-title.mb-3.size_18 { font-size: 1.8rem; }
+    .form-group.col-sm-4 { margin-left: 0; padding-left: 0; }
+    .table td, .table th { padding: 0.95rem; vertical-align: middle; border-top: 1px solid #e3eaef; }
+    .margin_0 { margin: 0 !important; }
+    .account-user-name { text-transform: capitalize; }
+    .leftbar-user .leftbar-user-name { margin-left: 0px; }
+    span.topnav-logo-lg, span.topnav-logo-sm { color: #fff; font-size: 1.2rem; text-transform: capitalize; }
+    .card { border-radius: 0.80rem; }
+    .content-page { padding-top: 20px; }
+    h3.my-2.py-1 { font-size: 2rem; }
+    h3.my-2.py-1 i { font-style: normal; font-weight: 200; font-size: 1.2rem; margin-left: 0.5rem; }
+    .row.footer_center { width: 100%; display: flex; justify-content: center; text-align: center; }
+    .topnav-navbar { padding: 0px 30px; margin: 0; min-height: 70px; }
+    button.btn.btn-danger.mb-2.mr-2 { border-radius: 0.4rem; }
+    .table .action-icon:hover { color: #ee7c74; }
+    .form-group.mb-3.text_right { text-align: right; }
+    button.btn.btn-primary { border-radius: 0.4rem; }
+    .text-muted { white-space: nowrap; }
+    .right_10 { margin-left: 10px; border-radius: 0.6rem; }
+    .margin_left { margin-left: 10px; }
+    body { cursor: url(/Style/cur/cursor.cur), default; }
+    a:hover { cursor: url(/Style/cur/hover.cur), pointer; }
+    quote { padding: 5px 0px 5px 15px; width: 100%; display: block; border-left: 3px solid #856f6f; background: #f2f2f2; border-radius: 0px 6px 6px 0px; margin: 15px 0; }
+    #lg-login { max-width: 440px; margin: 12vh auto; }
+    #lg-login .card { padding: 8px 6px; }
+    .lg-empty { color: #999; padding: 30px 0; text-align: center; }
+    @media (max-width: 767.98px) { .navbar-custom { padding: 0px; } .topnav-navbar .topnav-logo { min-width: 50px; display: none; } .left-side-menu { display: none; } .content-page { margin-left: 0 !important; } }
+  </style>
+</head>
+<body>
+  <div id="lg-admin"></div>
+  <script src="/Style/jquery/jquery.min.js"></script>
+  <script src="/Style/toastr/toastr.js"></script>
+  <script src="/admin/assets/js/app.min.js"></script>
+  <script src="/app/admin.js"></script>
+</body>
+</html>
