@@ -16,7 +16,7 @@ EdgeOne Makers/Pages 的**忠实迁移版**：以原 PHP 页面为功能与视�
   - `about.html` 关于（BotUI 完整对话流程）
   - `app/common.js` 公共脚本：拉取 `/api/data`、注入原版页头/页脚 DOM、计时器、留言时间、HTML 白名单清洗、懒加载/悬浮按钮
   - 复用 `Style/`（全部原版 CSS/JS/字体/图标）与 `Botui/`，不重新设计。
-- **后台** `admin.html` + `app/admin.js`：复用 `admin/assets` 原版主题视觉的 SPA，
+- **后台** `admin.html` + `app/admin.js`：沿用原项目栏目、表单和基础样式的 SPA，导航布局与交互由适配层自行管理，
   含仪表盘、基本/情侣/卡片/版权设置、DIY 代码、文章、相册、清单、留言、IP 封禁、非法访问、About 对话配置的完整增删改查。
 - **API** `node-functions/[[default]].js`：Node 云函数 catch-all，
   `@edgeone/pages-blob` 强一致存储站点设置、文章、相册、清单、留言、封禁/访问记录与上传图片。
@@ -66,6 +66,16 @@ BASE=https://你的域名 TOKEN=<后台登录token> node scripts/import-json.mjs
 | `/api/data` | GET | 公开站点数据（脱敏） |
 | `/api/media/:key` | GET | 读取 Blob 中的图片 |
 | `/api/messages` | POST | 提交留言（同 IP 60 秒限制、违禁词、IP 封禁） |
-| `/api/login` | POST | 获取 8 小时管理会话 |
+| `/api/login` | POST | 获取 8 小时管理会话，同时设置 HttpOnly Cookie |
+| `/api/logout` | POST | 清除浏览器管理会话 Cookie |
 | `/api/admin/data` | GET/PUT | 需 Bearer 会话，读取/更新完整管理数据 |
 | `/api/admin/upload` | POST | 需 Bearer 会话，上传图片到 Blob |
+
+## 后台会话排障
+
+后台登录设置 8 小时的 HttpOnly、SameSite=Strict Cookie，页面刷新后可恢复会话；Bearer Token 继续用于导入脚本等客户端。退出登录会清除浏览器 Cookie 和页面保存的 Token。
+
+- 返回 401 表示会话缺失、签名无效或过期，需要重新登录。
+- 返回 503 并提示安全配置，表示 `SESSION_SECRET` 未配置或不足 32 字符，应检查当前部署环境变量后重新部署。
+- 更换 `SESSION_SECRET` 会使原有会话失效；普通代码部署在密钥不变时无需更换会话。
+- Node 云函数按 `context.env`、全局绑定、`process.env` 的顺序读取环境变量。

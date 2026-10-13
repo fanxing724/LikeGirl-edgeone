@@ -70,7 +70,12 @@
     if (token) headers.authorization = "Bearer " + token
     var r = await fetch("/api/" + path, Object.assign({}, opts, { headers: headers }))
     var body = await r.json().catch(function () { return { error: "HTTP " + r.status } })
-    if (!r.ok) throw new Error(body.error || "请求失败 (" + r.status + ")")
+    if (!r.ok) {
+      if (r.status === 401) endSession()
+      var error = new Error(body.error || "请求失败 (" + r.status + ")")
+      error.status = r.status
+      throw error
+    }
     return body
   }
   async function uploadFile(file) {
@@ -79,7 +84,7 @@
     form.append("file", file)
     var r = await fetch("/api/admin/upload", { method: "POST", headers: { authorization: "Bearer " + token }, body: form })
     var body = await r.json().catch(function () { return { error: "HTTP " + r.status } })
-    if (!r.ok) throw new Error(body.error || "上传失败")
+    if (!r.ok) { if (r.status === 401) endSession(); throw new Error(body.error || "上传失败") }
     return body.url
   }
   async function uploadAll(fileList) {
@@ -124,6 +129,13 @@
     return obj
   }
 
+  function endSession() {
+    token = ""
+    sessionStorage.removeItem(TOKEN_KEY)
+    data = null
+    renderLogin()
+  }
+
   /* -------------------- 登录 -------------------- */
   function renderLogin() {
     document.body.classList.remove("lg-menu-open")
@@ -143,22 +155,29 @@
     $("#lg-login-form").on("submit", async function (e) {
       e.preventDefault()
       var pw = this.password.value
+      var button = this.querySelector("button[type=submit]")
+      button.disabled = true
+      button.textContent = "正在登录…"
       try {
         var r = await api("login", { method: "POST", body: JSON.stringify({ password: pw }) })
         token = r.token
         sessionStorage.setItem(TOKEN_KEY, token)
         await loadData()
+        route = getRoute()
         notify("登录成功")
         render()
       } catch (err) {
         notify(err.message, "error")
+      } finally {
+        button.disabled = false
+        button.textContent = "登 录"
       }
     })
   }
 
   /* -------------------- 框架（顶栏 + 侧栏 + 内容） -------------------- */
   function render() {
-    if (!token || !data) return renderLogin()
+    if (!data) return renderLogin()
     document.body.classList.remove("lg-login-mode", "lg-menu-open")
     var s = data.site
     var chrome =
@@ -168,6 +187,7 @@
       '<li class="dropdown notification-list"><a class="nav-link" href="#settings"><i class="dripicons-gear noti-icon"></i></a></li>' +
       '<li class="dropdown notification-list"><a class="nav-link dropdown-toggle nav-user arrow-none mr-0" href="#settings"><span class="account-user-avatar"><img src="' + esc(ownerAvatar(s.userName, s.userQQ)) + '" alt="user-image" class="rounded-circle"></span>' +
       '<span><span class="account-user-name">' + esc(s.userName) + '</span><span class="account-position">操作</span></span></a></li>' +
+      '<li><button type="button" class="lg-logout">退出登录</button></li>' +
       "</ul>" +
       '<button type="button" class="lg-menu-toggle" aria-label="打开导航菜单" aria-controls="lg-sidebar" aria-expanded="false"><i class="dripicons-menu" aria-hidden="true"></i></button>' +
       '<div class="app-search"></div></div></div>' +
@@ -192,6 +212,10 @@
       '<footer class="footer"><div class="row footer_center"><div class="col-md-6">Copyright © 2022-' + new Date().getFullYear() + ' <a href="https://blog.kikiw.cn/index.php/archives/52/" target="_blank">Ki</a> All Rights Reserved.</div></div></footer>' +
       "</div></div></div>"
     $("#lg-admin").html(chrome)
+    document.querySelector(".lg-logout").addEventListener("click", async function () {
+      try { await api("logout", { method: "POST" }); endSession() }
+      catch (e) { notify(e.message, "error") }
+    })
     var toggle = document.querySelector(".lg-menu-toggle")
     var backdrop = document.querySelector(".lg-menu-backdrop")
     function setMenu(open) {
@@ -563,17 +587,15 @@
     return ["dashboard", "settings", "messages", "stories", "photos", "wishes", "about", "ips", "warnings", "info"].indexOf(h) >= 0 ? h : "dashboard"
   }
   async function boot() {
-    if (!token) return renderLogin()
     try {
       await loadData()
       route = getRoute()
       render()
     } catch (e) {
-      if (e.message.indexOf("会话") >= 0) {
-        token = ""
-        sessionStorage.removeItem(TOKEN_KEY)
+      if (e.status !== 401) {
         renderLogin()
-      } else notify(e.message, "error")
+        notify(e.message, "error")
+      }
     }
   }
   window.addEventListener("hashchange", function () { route = getRoute(); if (data) render() })

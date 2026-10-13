@@ -123,7 +123,7 @@ const defaults = {
  * 通用工具
  * ------------------------------------------------------------------ */
 function env(context, name) {
-  const v = context?.env?.[name] ?? globalThis?.[name]
+  const v = context?.env?.[name] ?? globalThis?.[name] ?? process.env[name]
   return typeof v === "string" ? v.trim() : ""
 }
 
@@ -456,14 +456,16 @@ async function sign(payload, secret) {
 }
 async function verify(request, secret) {
   if (secret.length < 32) return false
-  const token = (request.headers.get("authorization") || "").replace(/^Bearer\s+/i, "")
+  const authorization = request.headers.get("authorization") || ""
+  const cookie = (request.headers.get("cookie") || "").split(";").map((part) => part.trim()).find((part) => part.startsWith("lg_session="))
+  const token = authorization ? authorization.replace(/^Bearer\s+/i, "") : (cookie || "").slice("lg_session=".length)
   const [body, sig] = token.split(".")
   if (!body || !sig) return false
   try {
     const ok = await crypto.subtle.verify("HMAC", await hmacKey(secret, ["verify"]), unb64(sig), encoder.encode(body))
     if (!ok) return false
     const value = JSON.parse(decoder.decode(unb64(body)))
-    return value.role === "admin" && value.exp > Date.now()
+    return value.role === "admin" && Number.isFinite(value.exp) && value.exp > Date.now()
   } catch {
     return false
   }
@@ -634,12 +636,21 @@ export async function onRequest(context) {
       const input = await readJson(request)
       if (!input || !(await passwordMatches(cleanText(input.password, 256), password)))
         return json({ error: "密码错误" }, 403)
-      return json({ token: await sign({ role: "admin", exp: Date.now() + SESSION_TTL }, secret) })
+      const expiresAt = Date.now() + SESSION_TTL
+      const token = await sign({ role: "admin", exp: expiresAt }, secret)
+      return json({ token, expiresAt }, 200, {
+        "set-cookie": `lg_session=${token}; Path=/api; HttpOnly; SameSite=Strict; Max-Age=${SESSION_TTL / 1000}${url.protocol === "https:" ? "; Secure" : ""}`,
+      })
+    }
+
+    if (path === "logout" && request.method === "POST") {
+      return json({ ok: true }, 200, { "set-cookie": `lg_session=; Path=/api; HttpOnly; SameSite=Strict; Max-Age=0${url.protocol === "https:" ? "; Secure" : ""}` })
     }
 
     /* ---- 后台数据（需鉴权） ---- */
     if (path === "admin/data" && (request.method === "GET" || request.method === "PUT")) {
       const secret = env(context, "SESSION_SECRET")
+      if (secret.length < 32) return json({ error: "后台未完成安全配置：SESSION_SECRET 至少需要 32 字符" }, 503)
       if (!(await verify(request, secret))) return json({ error: "会话无效或已过期，请重新登录" }, 401)
       const current = await readData()
       if (request.method === "GET") return json(current)
@@ -658,6 +669,7 @@ export async function onRequest(context) {
     /* ---- 图片上传（需鉴权） ---- */
     if (path === "admin/upload" && request.method === "POST") {
       const secret = env(context, "SESSION_SECRET")
+      if (secret.length < 32) return json({ error: "后台未完成安全配置：SESSION_SECRET 至少需要 32 字符" }, 503)
       if (!(await verify(request, secret))) return json({ error: "会话无效或已过期" }, 401)
       const length = Number(request.headers.get("content-length") || 0)
       if (length > MAX_IMAGE_BYTES + 256000) return json({ error: "图片不能超过 4 MB" }, 413)

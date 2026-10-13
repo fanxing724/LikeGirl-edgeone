@@ -209,3 +209,51 @@ body.lg-login-mode::after {
   .card .card-body { padding: 1rem; }
   .table-responsive { overflow-x: auto; }
 }
+
+/* EdgeOne 后台布局：保留原项目栏目与表单，自行管理导航和响应式布局。 */
+body:not(.lg-login-mode) .navbar-custom.topnav-navbar {
+  position: fixed;
+  inset: 0 0 auto;
+  height: 70px;
+  z-index: 1010;
+  padding: 0 20px;
+}
+.topnav-navbar > .container-fluid { display: flex; align-items: center; height: 100%; gap: 16px; }
+.topnav-navbar .topnav-logo { order: 1; flex: 1; min-width: 0; padding: 0; line-height: normal; }
+.topnav-navbar .topnav-logo-lg { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.topnav-navbar .topnav-logo-sm, .topnav-navbar .app-search { display: none; }
+.topnav-navbar .topbar-right-menu { order: 2; display: flex; align-items: center; margin: 0; padding: 0; }
+.topnav-navbar .topbar-right-menu > li { float: none; }
+.topnav-navbar .nav-user { min-height: 0; padding: 0 12px 0 48px !important; background: transparent; border: 0; }
+.topnav-navbar .account-user-avatar { top: 0; left: 8px; }
+.topnav-navbar .account-user-avatar img { width: 32px; height: 32px; object-fit: cover; }
+.lg-logout { border: 1px solid #ffffff50; border-radius: 8px; padding: 8px 12px; background: transparent; color: white; cursor: pointer; white-space: nowrap; }
+body:not(.lg-login-mode) .wrapper { padding-top: 70px; }
+body:not(.lg-login-mode) .left-side-menu {
+  position: fixed;
+  top: 70px;
+  bottom: 0;
+  left: 0;
+  width: 250px;
+  height: auto;
+  padding: 16px 0;
+  overflow-y: auto;
+  z-index: 1002;
+}
+body:not(.lg-login-mode) .content-page { margin-left: 250px; padding: 24px; min-height: calc(100vh - 70px); }
+.side-nav { list-style: none; padding: 0; }
+.side-nav .side-nav-link { display: block; padding: 14px 16px; }
+.side-nav .side-nav-link i { margin-right: 10px; }
+.content-page .footer { position: static; margin-top: 24px; padding: 20px 0; }
+.lg-menu-toggle:focus-visible, .lg-logout:focus-visible { outline: 2px solid white; outline-offset: 3px; }
+@media (max-width: 767.98px) {
+  body:not(.lg-login-mode) .navbar-custom.topnav-navbar { padding: 0 8px; }
+  .topnav-navbar > .container-fluid { padding: 0; gap: 4px; }
+  .lg-menu-toggle { order: 0; flex-shrink: 0; width: 44px; }
+  .topnav-navbar .topbar-right-menu { margin-left: auto !important; }
+  .topnav-navbar .nav-user { padding: 0 6px 0 40px !important; }
+  .topnav-navbar .nav-user > span:last-child { display: none; }
+  body:not(.lg-login-mode) .left-side-menu { width: min(260px, 85vw); padding: 12px 0; }
+  body:not(.lg-login-mode) .content-page { margin-left: 0; padding: 16px 0; }
+  #lg-login { margin: 8vh 16px; max-width: none; }
+}
