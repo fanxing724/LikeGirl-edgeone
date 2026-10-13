@@ -1,7 +1,9 @@
 import { getStore } from "@edgeone/pages-blob"
+import { isAuthRecord } from "./auth.js"
 import { defaults } from "./defaults.js"
 
 const DATA_KEY = "likegirl_site_data"
+const AUTH_KEY = "likegirl_admin_auth"
 
 export class StorageError extends Error {
   constructor(cause) {
@@ -34,7 +36,31 @@ export function createRepository(getBackend = () => getStore({ name: "likegirl_c
     catch (cause) { throw new StorageError(cause) }
     return data
   }
-  return { store, readData, writeData }
+  async function readAuth() {
+    try {
+      const record = await store().get(AUTH_KEY, { type: "json" })
+      if (record == null) return null
+      if (!isAuthRecord(record)) throw new Error("Invalid stored authentication record")
+      return record
+    } catch (cause) { throw new StorageError(cause) }
+  }
+  async function writeAuth(record) {
+    try { await store().setJSON(AUTH_KEY, record) }
+    catch (cause) { throw new StorageError(cause) }
+  }
+  let initializing = null
+  async function initializeAuth(record) {
+    if (initializing) { await initializing; return false }
+    initializing = (async () => {
+      if (await readAuth()) return false
+      // Recheck persisted state before writing, and never touch existing site content.
+      await writeAuth(record)
+      return true
+    })()
+    try { return await initializing }
+    finally { initializing = null }
+  }
+  return { store, readData, writeData, readAuth, writeAuth, initializeAuth }
 }
 
 function deepMerge(base, override) {
@@ -56,4 +82,4 @@ function deepMerge(base, override) {
 
 
 const repository = createRepository()
-export const { store, readData, writeData } = repository
+export const { store, readData, writeData, readAuth, writeAuth, initializeAuth } = repository

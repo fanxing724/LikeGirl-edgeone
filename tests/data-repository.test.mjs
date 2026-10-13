@@ -12,17 +12,19 @@ function backend() {
     delete: async (key) => { values.delete(key) },
   }
 }
-const settings = { ADMIN_PASSWORD: 'test-password', SESSION_SECRET: 's'.repeat(32) }
+const password = 'test-password'
 const apiRequest = (path, options) => new Request('https://example.com/api/' + path, options)
 
 async function login(handler) {
-  const response = await handler({ env: settings, request: apiRequest('login', { method: 'POST', body: JSON.stringify({ password: settings.ADMIN_PASSWORD }) }) })
+  const setup = await handler({ request: apiRequest('setup', { method: 'POST', body: JSON.stringify({ password, confirmPassword: password }) }) })
+  assert.equal(setup.status, 201)
+  const response = await handler({ request: apiRequest('login', { method: 'POST', body: JSON.stringify({ password: password }) }) })
   assert.equal(response.status, 200)
   return (await response.json()).token
 }
 
 async function save(handler, token, patch) {
-  return handler({ env: settings, request: apiRequest('admin/data', { method: 'PUT', headers: { authorization: 'Bearer ' + token }, body: JSON.stringify(patch) }) })
+  return handler({ request: apiRequest('admin/data', { method: 'PUT', headers: { authorization: 'Bearer ' + token }, body: JSON.stringify(patch) }) })
 }
 
 test('empty stores use independent defaults and legacy partial data is merged', async () => {

@@ -14,7 +14,7 @@ await rm(out, { recursive: true, force: true })
 await mkdir(out, { recursive: true })
 
 // 前台页面
-const pages = ["index.html", "little.html", "page.html", "leaving.html", "loveImg.html", "list.html", "about.html", "admin.html"]
+const pages = ["index.html", "little.html", "page.html", "leaving.html", "loveImg.html", "list.html", "about.html", "admin.html", "init.html"]
 for (const p of pages) await copyFile(src(p), join(out, p))
 
 // app 脚本

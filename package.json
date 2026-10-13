@@ -11,7 +11,7 @@
   "type": "module",
   "scripts": {
     "build": "node scripts/build-edgeone.mjs",
-    "check": "node --check node-functions/[[default]].js && node --check app/common.js && node --check app/home.js && node --check app/little.js && node --check app/page.js && node --check app/leaving.js && node --check app/loveImg.js && node --check app/list.js && node --check app/about.js && node --check app/admin.js && node scripts/check-functions.mjs",
+    "check": "node --check node-functions/[[default]].js && node --check app/common.js && node --check app/home.js && node --check app/little.js && node --check app/page.js && node --check app/leaving.js && node --check app/loveImg.js && node --check app/list.js && node --check app/about.js && node --check app/admin.js && node scripts/check-functions.mjs && node --check app/init.js",
     "test": "node --test tests/*.test.mjs"
   },
   "dependencies": {

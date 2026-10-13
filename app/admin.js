@@ -71,6 +71,7 @@
     var r = await fetch("/api/" + path, Object.assign({ cache: "no-store", credentials: "same-origin" }, opts, { headers: headers }))
     var body = await r.json().catch(function () { return { error: "HTTP " + r.status } })
     if (!r.ok) {
+      if (body.code === "NOT_INITIALIZED") location.replace("/init.html")
       if (r.status === 401) endSession()
       var error = new Error(body.error || "请求失败 (" + r.status + ")")
       error.status = r.status
@@ -293,8 +294,24 @@
       field("自定义头部标签（HTML/CSS外链）", "headHtml", s.headHtml, { type: "textarea", rows: 5 }) +
       field("自定义底部标签（HTML/JS外链）", "footerHtml", s.footerHtml, { type: "textarea", rows: 5 }) +
       '<div class="form-group mb-3 text_right"><button class="btn btn-primary" type="submit">提交修改</button></div></form></div></div></div>' +
+      '<div class="col-lg-12"><div class="card"><div class="card-body"><h4 class="header-title mb-3">修改管理密码</h4><form id="f-password">' +
+      field("当前密码", "currentPassword", "", { type: "password" }) +
+      field("新密码（至少 8 个字符）", "password", "", { type: "password" }) +
+      field("确认新密码", "confirmPassword", "", { type: "password" }) +
+      '<p>修改成功后需要重新登录。</p><button class="btn btn-primary" type="submit">修改密码</button></form></div></div></div>' +
       "</div>"
     )
+    $("#f-password").on("submit", async function (e) {
+      e.preventDefault()
+      var button = this.querySelector("button")
+      button.disabled = true
+      try {
+        await api("admin/password", { method: "POST", body: JSON.stringify(formVals(this)) })
+        endSession()
+        notify("密码已修改，请重新登录")
+      } catch (err) { notify(err.message, "error") }
+      finally { button.disabled = false }
+    })
     $("#f-basic").on("submit", function (e) { e.preventDefault(); submitSite(this, ["title", "logo", "writing", "blur", "pjax", "animation"]) })
     $("#f-couple").on("submit", function (e) { e.preventDefault(); submitSite(this, ["boy", "girl", "boyQQ", "girlQQ", "startTime"]) })
     $("#f-card").on("submit", async function (e) {
@@ -588,6 +605,8 @@
   }
   async function boot() {
     try {
+      var state = await api("setup/status")
+      if (!state.initialized) { location.replace("/init.html"); return }
       await loadData()
       route = getRoute()
       render()

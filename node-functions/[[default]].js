@@ -5,11 +5,10 @@
  * 对外仅暴露一个 [[default]].js 入口；内部按职责分区，便于审计。
  */
 
-import { env } from "./_lib/env.js"
 import { json } from "./_lib/http.js"
-import { store, readData, writeData, StorageError } from "./_lib/repository.js"
+import { store, readData, writeData, readAuth, writeAuth, initializeAuth, StorageError } from "./_lib/repository.js"
 import { cleanText, newId, sanitizeData, publicData } from "./_lib/schema.js"
-import { sign, verify, hash, passwordMatches, SESSION_TTL } from "./_lib/auth.js"
+import { sign, verify, hash, passwordMatches, createAuthRecord, validPassword, SESSION_TTL } from "./_lib/auth.js"
 
 /* ------------------------------------------------------------------ *
  * 常量
@@ -115,8 +114,8 @@ async function readJson(request) {
 /* ------------------------------------------------------------------ *
  * 路由分发
  * ------------------------------------------------------------------ */
-export function createHandler(repository = { store, readData, writeData }) {
-  const { store, readData, writeData } = repository
+export function createHandler(repository = { store, readData, writeData, readAuth, writeAuth, initializeAuth }) {
+  const { store, readData, writeData, readAuth, writeAuth, initializeAuth } = repository
   return async function onRequest(context) {
     const { request } = context
     const url = new URL(request.url)
@@ -129,10 +128,7 @@ export function createHandler(repository = { store, readData, writeData }) {
       /* ---- 健康检查 ---- */
       if (path === "health" && request.method === "GET") {
         await readData()
-        return json({ ok: true, storage: true, auth: {
-          password: Boolean(env(context, "ADMIN_PASSWORD")),
-          secret: env(context, "SESSION_SECRET").length >= 32,
-        } })
+        return json({ ok: true, storage: true, initialized: Boolean(await readAuth()) })
       }
 
       /* ---- 媒体读取 ---- */
@@ -205,19 +201,43 @@ export function createHandler(repository = { store, readData, writeData }) {
         return json({ ok: true }, 201)
       }
 
+      /* ---- 首次初始化：凭据独立存储，任何读取错误都禁止重新初始化 ---- */
+      if (path === "setup/status" && request.method === "GET") {
+        await readData()
+        return json({ initialized: Boolean(await readAuth()) })
+      }
+      if (path === "setup" && request.method === "POST") {
+        await readData()
+        if (await readAuth()) return json({ error: "后台已经初始化，请登录", code: "ALREADY_INITIALIZED" }, 409)
+        const input = await readJson(request)
+        if (!validPassword(input?.password)) return json({ error: "密码长度须为 8 至 256 个字符" }, 400)
+        if (input.password !== input.confirmPassword) return json({ error: "两次输入的密码不一致" }, 400)
+        const created = await initializeAuth(await createAuthRecord(input.password))
+        if (!created) return json({ error: "后台已经初始化，请登录", code: "ALREADY_INITIALIZED" }, 409)
+        return json({ ok: true }, 201)
+      }
+
       /* ---- 后台登录 ---- */
       if (path === "login" && request.method === "POST") {
-        const password = env(context, "ADMIN_PASSWORD")
-        const secret = env(context, "SESSION_SECRET")
-        if (!password || secret.length < 32) return json({ error: "后台未完成安全配置（ADMIN_PASSWORD / SESSION_SECRET）" }, 503)
+        const auth = await readAuth()
+        if (!auth) return json({ error: "请先初始化后台", code: "NOT_INITIALIZED" }, 409)
         const input = await readJson(request)
-        if (!input || !(await passwordMatches(cleanText(input.password, 256), password)))
-          return json({ error: "密码错误" }, 403)
+        if (!input || !(await passwordMatches(input.password, auth))) return json({ error: "密码错误" }, 403)
         const expiresAt = Date.now() + SESSION_TTL
-        const token = await sign({ role: "admin", exp: expiresAt }, secret)
+        const token = await sign({ role: "admin", exp: expiresAt }, auth.secret)
         return json({ token, expiresAt }, 200, {
           "set-cookie": `lg_session=${token}; Path=/api; HttpOnly; SameSite=Strict; Max-Age=${SESSION_TTL / 1000}${url.protocol === "https:" ? "; Secure" : ""}`,
         })
+      }
+
+      if (path === "admin/password" && request.method === "POST") {
+        const auth = await readAuth()
+        if (!auth || !(await verify(request, auth.secret))) return json({ error: "会话无效或已过期，请重新登录" }, 401)
+        const input = await readJson(request)
+        if (!(await passwordMatches(input?.currentPassword, auth))) return json({ error: "当前密码错误" }, 403)
+        if (!validPassword(input?.password) || input.password !== input.confirmPassword) return json({ error: "新密码须为 8 至 256 个字符，且两次输入一致" }, 400)
+        await writeAuth(await createAuthRecord(input.password))
+        return json({ ok: true }, 200, { "set-cookie": `lg_session=; Path=/api; HttpOnly; SameSite=Strict; Max-Age=0${url.protocol === "https:" ? "; Secure" : ""}` })
       }
 
       if (path === "logout" && request.method === "POST") {
@@ -226,9 +246,9 @@ export function createHandler(repository = { store, readData, writeData }) {
 
       /* ---- 后台数据（需鉴权） ---- */
       if (path === "admin/data" && (request.method === "GET" || request.method === "PUT")) {
-        const secret = env(context, "SESSION_SECRET")
-        if (secret.length < 32) return json({ error: "后台未完成安全配置：SESSION_SECRET 至少需要 32 字符" }, 503)
-        if (!(await verify(request, secret))) return json({ error: "会话无效或已过期，请重新登录" }, 401)
+        const auth = await readAuth()
+        if (!auth) return json({ error: "请先初始化后台", code: "NOT_INITIALIZED" }, 409)
+        if (!(await verify(request, auth.secret))) return json({ error: "会话无效或已过期，请重新登录" }, 401)
         const current = await readData()
         if (request.method === "GET") return json(current)
         const patch = await readJson(request)
@@ -245,9 +265,9 @@ export function createHandler(repository = { store, readData, writeData }) {
 
       /* ---- 图片上传（需鉴权） ---- */
       if (path === "admin/upload" && request.method === "POST") {
-        const secret = env(context, "SESSION_SECRET")
-        if (secret.length < 32) return json({ error: "后台未完成安全配置：SESSION_SECRET 至少需要 32 字符" }, 503)
-        if (!(await verify(request, secret))) return json({ error: "会话无效或已过期" }, 401)
+        const auth = await readAuth()
+        if (!auth) return json({ error: "请先初始化后台", code: "NOT_INITIALIZED" }, 409)
+        if (!(await verify(request, auth.secret))) return json({ error: "会话无效或已过期" }, 401)
         const length = Number(request.headers.get("content-length") || 0)
         if (length > MAX_IMAGE_BYTES + 256000) return json({ error: "图片不能超过 4 MB" }, 413)
         const form = await request.formData()

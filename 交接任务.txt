@@ -41,7 +41,7 @@ GitHub 远程名：edgeone
 - node-functions/[[default]].js 作为 Node Cloud Functions catch-all API。
 - @edgeone/pages-blob 作为强一致持久化存储。
 - 站点设置、文章、相册、清单、留言的 JSON 存储。
-- ADMIN_PASSWORD + SESSION_SECRET 环境变量。
+- 初始化页面设置管理员密码；密码哈希与会话密钥保存在 Pages Blob 独立认证键中。
 - HMAC 签名后台会话。
 - 图片上传至 Pages Blob，支持 JPG/PNG/WebP/GIF，单图 4 MB。
 - 图片 MIME + 文件魔数校验。
@@ -257,7 +257,7 @@ GET  /api/media/:key      读取图片 Blob
 - scripts/build-edgeone.mjs
 - edgeone.json
 - EDGEONE.md
-- .env.example
+- init.html + app/init.js + app/init.css（首次初始化）
 
 参考 EdgeOne 生产项目：
 - /home/fanxing/下载/OpenList-Worker
@@ -311,7 +311,7 @@ GET  /api/media/:key      读取图片 Blob
 十二、安全和许可注意事项
 --------------------------
 
-- 必填环境变量：ADMIN_PASSWORD、SESSION_SECRET（至少 32 字符）。
+- 无需认证环境变量：首次访问 /admin.html 自动进入 /init.html 设置密码。
 - 不得把真实密码/密钥写入仓库。
 - 原版 Config_DB.php 中是旧默认值，EdgeOne 版不得使用它。
 - 不能恢复 MD5 密码存储。

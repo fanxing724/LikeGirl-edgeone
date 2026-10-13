@@ -42,10 +42,38 @@ export async function hash(value) {
   const out = await crypto.subtle.digest("SHA-256", encoder.encode(value))
   return [...new Uint8Array(out)].map((x) => x.toString(16).padStart(2, "0")).join("")
 }
-export async function passwordMatches(input, expected) {
-  const [a, b] = await Promise.all([hash(input), hash(expected)])
-  let diff = 0
-  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i)
-  return diff === 0
+const PASSWORD_ITERATIONS = 210000
+
+async function derivePassword(password, salt) {
+  const key = await crypto.subtle.importKey("raw", encoder.encode(password), "PBKDF2", false, ["deriveBits"])
+  const bits = await crypto.subtle.deriveBits({ name: "PBKDF2", salt: encoder.encode(salt), iterations: PASSWORD_ITERATIONS, hash: "SHA-256" }, key, 256)
+  return [...new Uint8Array(bits)].map((value) => value.toString(16).padStart(2, "0")).join("")
 }
 
+function randomHex(length) {
+  return [...crypto.getRandomValues(new Uint8Array(length))].map((value) => value.toString(16).padStart(2, "0")).join("")
+}
+
+export function validPassword(password) {
+  return typeof password === "string" && password.length >= 8 && password.length <= 256
+}
+
+export function isAuthRecord(value) {
+  return value && value.version === 1 && value.iterations === PASSWORD_ITERATIONS &&
+    /^[a-f0-9]{32}$/.test(value.salt) && /^[a-f0-9]{64}$/.test(value.passwordHash) && /^[a-f0-9]{64}$/.test(value.secret)
+}
+
+export async function createAuthRecord(password) {
+  const salt = randomHex(16)
+  return { version: 1, iterations: PASSWORD_ITERATIONS, salt,
+    passwordHash: await derivePassword(password, salt), secret: randomHex(32),
+    updatedAt: new Date().toISOString() }
+}
+
+export async function passwordMatches(input, record) {
+  if (typeof input !== "string" || input.length > 256 || !isAuthRecord(record)) return false
+  const actual = await derivePassword(input, record.salt)
+  let diff = 0
+  for (let i = 0; i < actual.length; i++) diff |= actual.charCodeAt(i) ^ record.passwordHash.charCodeAt(i)
+  return diff === 0
+}

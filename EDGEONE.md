@@ -26,12 +26,12 @@ EdgeOne Makers/Pages 的**忠实迁移版**：以原 PHP 页面为功能与视�
 
 1. 将仓库推送到 GitHub/Gitee，在 EdgeOne Makers 中导入。
 2. 平台按 `edgeone.json` 执行 `npm install` 与 `npm run build`，静态产物位于 `dist`。
-3. 在项目环境变量中配置：
-   - `ADMIN_PASSWORD`：管理后台密码。
-   - `SESSION_SECRET`：不少于 32 字符的随机字符串（`openssl rand -hex 32`）。
-4. 重新部署，先访问 `/api/health`，确认 `ok`、`storage`、`auth.password`、`auth.secret` 均为 `true`。
-5. 访问 `/admin.html` 登录后台进行配置；访问 `/index.html` 查看前台。
+3. 访问 `/api/health`，确认 `ok`、`storage` 为 `true`。
+4. 访问 `/admin.html`，首次自动跳转到 `/init.html`；设置并确认管理员密码（至少 8 个字符）。
+5. 初始化后登录后台进行配置；访问 `/index.html` 查看前台。
 6. 在后台上传一张测试图片，确认返回的 `/api/media/image_...` 地址可正常访问。
+
+无需设置管理员密码或会话密钥环境变量。EdgeOne 版本采用 Pages Blob 提供键值持久化，与 OpenList-Worker 的 Blob 驱动机制相同，不需要另建 Edge KV 代理。
 
 ## 数据与兼容说明
 
@@ -62,7 +62,10 @@ BASE=https://你的域名 TOKEN=<后台登录token> node scripts/import-json.mjs
 
 | 路径 | 方法 | 用途 |
 | --- | --- | --- |
-| `/api/health` | GET | Blob 存储健康检查 |
+| `/api/health` | GET | 存储健康检查与初始化状态 |
+| `/api/setup/status` | GET | 查询是否已初始化 |
+| `/api/setup` | POST | 首次设置管理员密码 |
+| `/api/admin/password` | POST | 校验当前密码并修改密码，需管理会话 |
 | `/api/data` | GET | 公开站点数据（脱敏） |
 | `/api/media/:key` | GET | 读取 Blob 中的图片 |
 | `/api/messages` | POST | 提交留言（同 IP 60 秒限制、违禁词、IP 封禁） |
@@ -71,20 +74,25 @@ BASE=https://你的域名 TOKEN=<后台登录token> node scripts/import-json.mjs
 | `/api/admin/data` | GET/PUT | 需 Bearer 会话，读取/更新完整管理数据 |
 | `/api/admin/upload` | POST | 需 Bearer 会话，上传图片到 Blob |
 
-## 后台会话排障
+## 初始化与后台会话
 
-后台登录设置 8 小时的 HttpOnly、SameSite=Strict Cookie，页面刷新后可恢复会话；Bearer Token 继续用于导入脚本等客户端。退出登录会清除浏览器 Cookie 和页面保存的 Token。
+`init.html` 检查 `/api/setup/status`：未初始化时显示设置密码表单，已初始化时进入登录页。初始化接口只写独立的 `likegirl_admin_auth` 键，保留已有站点内容。
 
-- 返回 401 表示会话缺失、签名无效或过期，需要重新登录。
-- 返回 503 并提示安全配置，表示 `SESSION_SECRET` 未配置或不足 32 字符，应检查当前部署环境变量后重新部署。
-- 更换 `SESSION_SECRET` 会使原有会话失效；普通代码部署在密钥不变时无需更换会话。
-- Node 云函数按 `context.env`、全局绑定、`process.env` 的顺序读取环境变量。
+密码采用 PBKDF2-SHA256（210,000 次迭代、独立随机盐）存储哈希。会话签名密钥由密码学随机数生成，存入同一认证记录；每次登录和验签从持久化存储读取，多实例和冷启动使用同一密钥。认证记录不会出现在公开数据或后台内容数据中。
+
+登录设置 8 小时 HttpOnly、SameSite=Strict Cookie，刷新页面可恢复会话；Bearer Token 继续供导入脚本使用。退出登录清除浏览器 Cookie 和页面 Token。后台修改密码需要当前密码和有效会话，并生成新签名密钥，使全部旧会话失效。
+
+- 401：会话缺失、签名无效或已过期，需要重新登录。
+- 409 / `NOT_INITIALIZED`：先完成初始化。
+- 409 / `ALREADY_INITIALIZED`：已初始化，不能通过初始化接口覆盖密码。
+- 503 / `STORAGE_UNAVAILABLE`：存储读取、写入或数据校验失败。失败不会被当成未初始化，也不会覆盖已有认证记录。
+
+原有环境变量认证已取消。升级旧部署后需要在初始化页面设置一次密码，原有内容保持不变。忘记密码时，可在平台存储控制台删除 `likegirl_admin_auth` 认证键后重新初始化；不要删除 `likegirl_site_data` 内容键。
 
 ## 分层与即时更新
 
 - `node-functions/[[default]].js`：API 路由和业务操作，保持现有地址兼容。
-- `_lib/env.js`：统一读取环境变量。
-- `_lib/auth.js`：HMAC 会话签发和校验，与站点配置分离。
+- `_lib/auth.js`：密码哈希、HMAC 会话签发和校验，与站点配置分离。
 - `_lib/repository.js`：Pages Blob 强一致读写；仅空存储使用默认内容，故障返回 503。
 - `_lib/defaults.js`、`_lib/schema.js`：原项目数据模型、输入校验和公开数据脱敏。
 - `_lib/http.js`：JSON 响应和禁缓存头。

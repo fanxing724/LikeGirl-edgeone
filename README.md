@@ -3,7 +3,7 @@
 一个可部署到 EdgeOne Makers/Pages 的轻量情侣纪念小站。项目由 LikeGirl-CE 适配而来，使用静态前端、Node.js 云函数和 EdgeOne Pages Blob，不需要 PHP 服务器或 MySQL。
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](LICENSE)
-[![Deploy to EdgeOne](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://edgeone.ai/pages/new?project-name=likegirl-edgeone&repository-url=https://github.com/fanxing724/LikeGirl-edgeone&install-command=npm%20install&build-command=npm%20run%20build&output-directory=dist&env=ADMIN_PASSWORD,SESSION_SECRET)
+[![Deploy to EdgeOne](https://cdnstatic.tencentcs.com/edgeone/pages/deploy.svg)](https://edgeone.ai/pages/new?project-name=likegirl-edgeone&repository-url=https://github.com/fanxing724/LikeGirl-edgeone&install-command=npm%20install&build-command=npm%20run%20build&output-directory=dist)
 
 ## 功能
 
@@ -39,7 +39,7 @@
 
 后台通过管理 API 仅提交当前表单的字段。服务端读取 Blob 中的最新数据，校验并合并字段，写入成功后才返回成功。前台通过 `/api/data` 读取当前内容，接口和浏览器请求均禁用缓存；刷新前台即可看到修改。
 
-存储首次为空时使用默认内容。读取失败、数据损坏或写入失败会明确返回错误，避免以默认数据覆盖已有站点。会话签名密钥与站点内容分离，修改文案、背景或文章不会使登录失效。
+存储首次为空时使用默认内容。读取失败、数据损坏或写入失败会明确返回错误，避免以默认数据覆盖已有站点。密码哈希和会话签名密钥独立持久化，与站点内容分离，修改文案、背景或文章不会使登录失效。
 
 ## 部署
 
@@ -52,21 +52,14 @@
 Node.js：22.21.1
 ```
 
-部署前必须配置：
+无需配置管理员密码或会话密钥环境变量。部署后访问 `/admin.html`，未初始化时会自动进入 `/init.html`，设置并确认管理员密码后即可登录。
 
-| 环境变量 | 说明 |
-| --- | --- |
-| `ADMIN_PASSWORD` | 管理后台强密码 |
-| `SESSION_SECRET` | 至少 32 字符的会话签名密钥 |
-
-```bash
-openssl rand -hex 32
-```
+EdgeOne 版本沿用 OpenList-Worker 的 Pages Blob 键值存储方式。认证记录保存在 `likegirl_ce` Store 的 `likegirl_admin_auth` 键中，包含带盐 PBKDF2-SHA256 密码哈希和随机会话签名密钥；明文密码不会存储。站点内容和认证记录分开保存。
 
 ### 部署后验收
 
-1. 访问 `/api/health`，确认 `ok`、`storage` 以及 `auth.password`、`auth.secret` 均为 `true`。
-2. 从页脚进入“管理后台”。
+1. 访问 `/api/health`，确认 `ok`、`storage` 为 `true`；完成初始化后 `initialized` 也为 `true`。
+2. 从页脚进入“管理后台”，首次设置密码后登录。
 3. 上传一张测试图片，确认 `/api/media/image_...` 地址可访问。
 4. 新增文章或留言，刷新页面确认数据已持久化。
 
@@ -89,8 +82,9 @@ npm run build
 index.html                         EdgeOne 版前端入口
 app/                              前台页面脚本与后台界面
 admin.html                        管理后台入口
+init.html                         首次初始化页面
 node-functions/[[default]].js      Node 云函数路由与业务操作
-node-functions/_lib/               鉴权、环境变量、存储、数据模型与响应
+node-functions/_lib/               鉴权、存储、数据模型与响应
 tests/                            会话、设置保存和持久化回归测试
 scripts/build-edgeone.mjs          静态产物构建脚本
 edgeone.json                       EdgeOne 项目配置
@@ -101,8 +95,9 @@ EDGEONE.md                         详细部署文档
 
 ## 安全
 
-- 不要在代码、`.env.example` 或 Issue 中提交真实密码。
-- `SESSION_SECRET` 不足 32 字符时，后台会拒绝登录。
+- 不要在代码或 Issue 中提交真实密码。
+- 管理密码通过初始化页面设置，至少 8 个字符；密码哈希和会话密钥持久化存储。
+- 后台“基本设置”中可修改管理密码，修改后所有旧会话失效。
 - 上传接口校验管理会话、文件大小、MIME 类型和文件签名。
 - 项目不渲染后台输入的任意 HTML，以减少存储型 XSS 风险。
 
