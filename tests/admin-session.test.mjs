@@ -75,3 +75,10 @@ test('session diagnostics distinguish absent, invalid, and expired credentials',
   assert.equal(await verify(request({ cookie: 'lg_session=' + valid + '.extra' }), secret), false)
   assert.equal(await verify(request({ cookie: 'lg_session=' + valid }), undefined), false)
 })
+
+test('dedicated session header and cookie override gateway Authorization', async () => {
+  const token = await sign({ role: 'admin', exp: Date.now() + 60000 }, secret)
+  assert.equal(await verify(request({ authorization: 'Bearer platform-credential', 'x-lg-session': token }), secret), true)
+  assert.equal(await verify(request({ authorization: 'Bearer platform-credential', cookie: 'lg_session=' + token }), secret), true)
+  assert.equal(await verify(request({ authorization: 'Bearer platform-credential', 'x-lg-session': 'invalid', cookie: 'lg_session=' + token }), secret), false)
+})

@@ -15,7 +15,10 @@ export async function inspectSession(request, secret) {
   if (typeof secret !== "string" || secret.length < 32) return { ok: false, code: "AUTH_UNAVAILABLE" }
   const authorization = request.headers.get("authorization") || ""
   const cookie = (request.headers.get("cookie") || "").split(";").map(part => part.trim()).find(part => part.startsWith("lg_session="))
-  const token = authorization ? authorization.replace(/^Bearer\s+/i, "") : (cookie || "").slice("lg_session=".length)
+  // EdgeOne can reserve/replace Authorization for its own gateway authentication.
+  // Our dedicated header and cookie must take precedence over that platform header.
+  const token = request.headers.get("x-lg-session") || (cookie || "").slice("lg_session=".length) ||
+    (authorization ? authorization.replace(/^Bearer\s+/i, "") : "")
   if (!token) return { ok: false, code: "SESSION_MISSING" }
   if (token.length > 4096 || !/^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token)) return { ok: false, code: "SESSION_INVALID" }
   try {

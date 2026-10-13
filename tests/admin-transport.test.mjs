@@ -29,8 +29,9 @@ async function server() {
   const fetch = async (path, options = {}) => {
     const headers = new Headers(options.headers)
     if (cookie) headers.set('cookie', cookie)
+    headers.set('authorization', 'Bearer gateway-credential')
     const response = await handler({ request: new Request('https://example.com' + path, { ...options, headers }) })
-    calls.push({ path, authorization: headers.get('authorization'), status: response.status })
+    calls.push({ path, authorization: headers.get('x-lg-session'), status: response.status })
     if (response.headers.has('set-cookie')) cookie = response.headers.get('set-cookie').split(';')[0]
     return response
   }
@@ -67,11 +68,11 @@ test('disabled browser storage still allows in-memory Bearer login', async () =>
   }, '', true)
   session.setToken(token)
   await session.request('admin/data')
-  assert.equal(calls[0].headers.get('authorization'), 'Bearer ' + token)
+  assert.equal(calls[0].headers.get('x-lg-session'), token)
   assert.equal(calls[0].credentials, 'same-origin')
   session.setToken('')
   await session.request('admin/data')
-  assert.equal(calls[1].headers.get('authorization'), null)
+  assert.equal(calls[1].headers.get('x-lg-session'), null)
 })
 
 test('invalid sessions retry at most once; server failures do not retry writes', async () => {

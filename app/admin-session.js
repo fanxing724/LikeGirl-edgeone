@@ -17,13 +17,13 @@
     options = options || {}
     var currentToken = token
     var headers = new Headers(options.headers || {})
-    if (currentToken) headers.set("authorization", "Bearer " + currentToken)
+    if (currentToken) headers.set("x-lg-session", currentToken)
     var init = Object.assign({}, options, { headers: headers, credentials: "same-origin", cache: "no-store" })
     var response = await fetch("/api/" + path, init)
     // A token from an older tab/session must not hide a valid HttpOnly cookie.
     if (response.status === 401 && currentToken && token === currentToken) {
       setToken("")
-      headers.delete("authorization")
+      headers.delete("x-lg-session")
       response = await fetch("/api/" + path, init)
     }
     return response
