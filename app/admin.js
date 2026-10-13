@@ -5,8 +5,7 @@
 (function () {
   "use strict"
   var $ = window.jQuery
-  var TOKEN_KEY = "lg_token"
-  var token = sessionStorage.getItem(TOKEN_KEY) || ""
+  var session = window.LGAdminSession
   var data = null
   var route = "dashboard"
 
@@ -67,8 +66,7 @@
   async function api(path, opts) {
     opts = opts || {}
     var headers = Object.assign({ "content-type": "application/json" }, opts.headers || {})
-    if (token) headers.authorization = "Bearer " + token
-    var r = await fetch("/api/" + path, Object.assign({ cache: "no-store", credentials: "same-origin" }, opts, { headers: headers }))
+    var r = await session.request(path, Object.assign({}, opts, { headers: headers }))
     var body = await r.json().catch(function () { return { error: "HTTP " + r.status } })
     if (!r.ok) {
       if (body.code === "NOT_INITIALIZED") location.replace("/init.html")
@@ -83,7 +81,7 @@
     if (!file || !file.size) throw new Error("请选择图片")
     var form = new FormData()
     form.append("file", file)
-    var r = await fetch("/api/admin/upload", { method: "POST", headers: { authorization: "Bearer " + token }, body: form })
+    var r = await session.request("admin/upload", { method: "POST", body: form })
     var body = await r.json().catch(function () { return { error: "HTTP " + r.status } })
     if (!r.ok) { if (r.status === 401) endSession(); throw new Error(body.error || "上传失败") }
     return body.url
@@ -131,8 +129,7 @@
   }
 
   function endSession() {
-    token = ""
-    sessionStorage.removeItem(TOKEN_KEY)
+    session.setToken("")
     data = null
     renderLogin()
   }
@@ -161,8 +158,7 @@
       button.textContent = "正在登录…"
       try {
         var r = await api("login", { method: "POST", body: JSON.stringify({ password: pw }) })
-        token = r.token
-        sessionStorage.setItem(TOKEN_KEY, token)
+        session.setToken(r.token)
         await loadData()
         route = getRoute()
         notify("登录成功")
