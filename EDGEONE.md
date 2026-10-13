@@ -29,7 +29,7 @@ EdgeOne Makers/Pages 的**忠实迁移版**：以原 PHP 页面为功能与视�
 3. 在项目环境变量中配置：
    - `ADMIN_PASSWORD`：管理后台密码。
    - `SESSION_SECRET`：不少于 32 字符的随机字符串（`openssl rand -hex 32`）。
-4. 重新部署，先访问 `/api/health`，期望返回 `{"ok":true,"storage":true}`。
+4. 重新部署，先访问 `/api/health`，确认 `ok`、`storage`、`auth.password`、`auth.secret` 均为 `true`。
 5. 访问 `/admin.html` 登录后台进行配置；访问 `/index.html` 查看前台。
 6. 在后台上传一张测试图片，确认返回的 `/api/media/image_...` 地址可正常访问。
 
@@ -49,7 +49,7 @@ EdgeOne Makers/Pages 的**忠实迁移版**：以原 PHP 页面为功能与视�
 
 内置默认数据已镜像 `DB/LikeGirl-CE_DB.sql`。若需把真实环境数据迁入：
 
-1. 从旧 PHP 环境导出 JSON（结构见 `node-functions/[[default]].js` 的 `defaults`）。
+1. 从旧 PHP 环境导出 JSON（结构见 `node-functions/_lib/defaults.js`）。
 2. 用随附脚本推送到线上：
 
 ```bash
@@ -79,3 +79,16 @@ BASE=https://你的域名 TOKEN=<后台登录token> node scripts/import-json.mjs
 - 返回 503 并提示安全配置，表示 `SESSION_SECRET` 未配置或不足 32 字符，应检查当前部署环境变量后重新部署。
 - 更换 `SESSION_SECRET` 会使原有会话失效；普通代码部署在密钥不变时无需更换会话。
 - Node 云函数按 `context.env`、全局绑定、`process.env` 的顺序读取环境变量。
+
+## 分层与即时更新
+
+- `node-functions/[[default]].js`：API 路由和业务操作，保持现有地址兼容。
+- `_lib/env.js`：统一读取环境变量。
+- `_lib/auth.js`：HMAC 会话签发和校验，与站点配置分离。
+- `_lib/repository.js`：Pages Blob 强一致读写；仅空存储使用默认内容，故障返回 503。
+- `_lib/defaults.js`、`_lib/schema.js`：原项目数据模型、输入校验和公开数据脱敏。
+- `_lib/http.js`：JSON 响应和禁缓存头。
+
+现有 `likegirl_ce` Store 与 `likegirl_site_data` 键保持不变，无需迁移数据。设置表单只提交修改字段，服务端合并最新记录；保存成功后刷新前台即可生效。接口不依赖实例内的配置缓存，冷启动也从同一存储读取。
+
+这套 Blob JSON 模型仍不提供跨实例的事务或条件写入；多个客户端同时修改时应避免并发保存。本文的字段合并改善旧页面覆盖问题，不等同于数据库事务。

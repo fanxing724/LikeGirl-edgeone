@@ -68,7 +68,7 @@
     opts = opts || {}
     var headers = Object.assign({ "content-type": "application/json" }, opts.headers || {})
     if (token) headers.authorization = "Bearer " + token
-    var r = await fetch("/api/" + path, Object.assign({}, opts, { headers: headers }))
+    var r = await fetch("/api/" + path, Object.assign({ cache: "no-store", credentials: "same-origin" }, opts, { headers: headers }))
     var body = await r.json().catch(function () { return { error: "HTTP " + r.status } })
     if (!r.ok) {
       if (r.status === 401) endSession()
@@ -303,7 +303,7 @@
       var file = this.backgroundFile.files[0]
       try {
         if (file) v.background = await uploadFile(file)
-        await save({ site: Object.assign({}, data.site, pick(v, ["background", "card1", "deci1", "card2", "deci2", "card3", "deci3", "icp", "copyright", "userName", "userQQ"])) })
+        await save({ site: pick(v, ["background", "card1", "deci1", "card2", "deci2", "card3", "deci3", "icp", "copyright", "userName", "userQQ"]) })
         notify("保存成功")
         render()
       } catch (err) { notify(err.message, "error") }
@@ -316,7 +316,7 @@
     var v = formVals(form)
     boolFields(v, ["blur", "pjax", "animation"].filter(function (k) { return keys.indexOf(k) >= 0 }))
     try {
-      await save({ site: Object.assign({}, data.site, pick(v, keys)) })
+      await save({ site: pick(v, keys) })
       notify("保存成功")
       render()
     } catch (err) { notify(err.message, "error") }
@@ -510,7 +510,7 @@
       var file = this.backgroundFile.files[0]
       try {
         if (file) v.background = await uploadFile(file)
-        await save({ about: Object.assign({}, data.about, v) })
+        await save({ about: v })
         notify("已保存"); render()
       } catch (e) { notify(e.message, "error") }
     })

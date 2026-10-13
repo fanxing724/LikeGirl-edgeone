@@ -257,3 +257,12 @@ body:not(.lg-login-mode) .content-page { margin-left: 250px; padding: 24px; min-
   body:not(.lg-login-mode) .content-page { margin-left: 0; padding: 16px 0; }
   #lg-login { margin: 8vh 16px; max-width: none; }
 }
+
+@media (max-width: 767.98px) {
+  /* 上游主题在移动端使用 z-index:10!important，需明确覆盖以置于遮罩上方。 */
+  body:not(.lg-login-mode) #lg-sidebar {
+    z-index: 1002 !important;
+    min-width: 0;
+    max-width: none;
+  }
+}

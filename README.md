@@ -14,6 +14,7 @@
 - 可上传背景图、相册多图和清单图片。
 - 支持 JPG、PNG、WebP 和 GIF，单张最大 4 MB。
 - 数据和图片均持久化到 EdgeOne Pages Blob。
+- 后台保存内容后，前台刷新即可读取新内容，无需重新构建或部署。
 - 图片替换或记录删除后，自动清理不再被引用的站内 Blob。
 - 后台使用 HMAC 签名会话，用户文本统一转义输出。
 
@@ -33,6 +34,12 @@
 | 存储 | `@edgeone/pages-blob`，强一致读取 |
 | 路由 | `node-functions/[[default]].js` catch-all |
 | 构建 | Node.js 脚本生成 `dist/` 静态产物 |
+
+## 内容即时更新
+
+后台通过管理 API 仅提交当前表单的字段。服务端读取 Blob 中的最新数据，校验并合并字段，写入成功后才返回成功。前台通过 `/api/data` 读取当前内容，接口和浏览器请求均禁用缓存；刷新前台即可看到修改。
+
+存储首次为空时使用默认内容。读取失败、数据损坏或写入失败会明确返回错误，避免以默认数据覆盖已有站点。会话签名密钥与站点内容分离，修改文案、背景或文章不会使登录失效。
 
 ## 部署
 
@@ -58,7 +65,7 @@ openssl rand -hex 32
 
 ### 部署后验收
 
-1. 访问 `/api/health`，应返回 `{"ok":true,"storage":true}`。
+1. 访问 `/api/health`，确认 `ok`、`storage` 以及 `auth.password`、`auth.secret` 均为 `true`。
 2. 从页脚进入“管理后台”。
 3. 上传一张测试图片，确认 `/api/media/image_...` 地址可访问。
 4. 新增文章或留言，刷新页面确认数据已持久化。
@@ -70,18 +77,21 @@ openssl rand -hex 32
 ```bash
 npm install
 npm run check
+npm test
 npm run build
 ```
 
-Pages Blob 凭据由 EdgeOne 运行环境注入，因此完整存储测试需在部署后进行。
+测试使用可注入的内存存储，覆盖登录、热修改、跨实例读取和存储故障。真实 Pages Blob 凭据由 EdgeOne 运行环境注入，线上存储仍需按部署验收步骤检查。
 
 ## 目录
 
 ```text
 index.html                         EdgeOne 版前端入口
-edgeone-app.js                     页面与后台逻辑
-edgeone-app.css                    页面样式
-node-functions/[[default]].js      Node 云函数 API
+app/                              前台页面脚本与后台界面
+admin.html                        管理后台入口
+node-functions/[[default]].js      Node 云函数路由与业务操作
+node-functions/_lib/               鉴权、环境变量、存储、数据模型与响应
+tests/                            会话、设置保存和持久化回归测试
 scripts/build-edgeone.mjs          静态产物构建脚本
 edgeone.json                       EdgeOne 项目配置
 EDGEONE.md                         详细部署文档

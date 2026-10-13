@@ -95,11 +95,28 @@
     if (dataPromise && !refresh) return dataPromise
     dataPromise = fetch("/api/data", { headers: { Accept: "application/json" }, cache: "no-store" })
       .then(function (r) {
-        if (!r.ok) throw new Error("HTTP " + r.status)
-        return r.json()
+        return r.json().then(function (body) {
+          if (!r.ok) throw new Error(body.error || "HTTP " + r.status)
+          return body
+        })
       })
       .catch(function (e) {
         console.error("[LikeGirl] 数据加载失败", e)
+        dataPromise = null
+        var errorBox = document.getElementById("lg-data-error")
+        if (!errorBox) {
+          errorBox = document.createElement("div")
+          errorBox.id = "lg-data-error"
+          errorBox.setAttribute("role", "alert")
+          errorBox.style.cssText = "position:fixed;inset:16px 16px auto;z-index:999999;background:#fff;padding:16px;border:1px solid #ff5295;border-radius:12px;color:#46314f;text-align:center"
+          document.body.appendChild(errorBox)
+        }
+        errorBox.textContent = e.message + "。"
+        var retry = document.createElement("button")
+        retry.type = "button"
+        retry.textContent = "重新加载"
+        retry.addEventListener("click", function () { location.reload() })
+        errorBox.appendChild(retry)
         return null
       })
     return dataPromise
