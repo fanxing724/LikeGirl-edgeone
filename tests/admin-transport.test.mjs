@@ -49,13 +49,16 @@ test('stale browser token recovers using a valid cookie and clears stored token'
   assert.equal(saved.has('lg_token'), false)
 })
 
-test('page reload and image upload use cookie without an empty Bearer header', async () => {
+test('page reload uses cookie and legacy image uploads are disabled', async () => {
   const { fetch, calls } = await server()
   const { session } = client(fetch)
   assert.equal((await session.request('admin/data')).status, 200)
   const form = new FormData()
-  // Missing file returns validation error, proving upload authentication passed.
-  assert.equal((await session.request('admin/upload', { method: 'POST', body: form })).status, 400)
+  form.append('file', new Blob([new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10])], { type: 'image/png' }), 'image.png')
+  // Even a cached frontend cannot upload images into Pages Blob.
+  const response = await session.request('admin/upload', { method: 'POST', body: form })
+  assert.equal(response.status, 410)
+  assert.equal((await response.json()).code, 'IMAGE_UPLOAD_DISABLED')
   assert.equal(calls.at(-1).authorization, null)
 })
 

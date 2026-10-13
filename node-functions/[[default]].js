@@ -13,14 +13,6 @@ import { sign, verify, inspectSession, hash, passwordMatches, createAuthRecord, 
 /* ------------------------------------------------------------------ *
  * 常量
  * ------------------------------------------------------------------ */
-const decoder = new TextDecoder()
-const IMAGE_TYPES = {
-  "image/jpeg": "jpg",
-  "image/png": "png",
-  "image/webp": "webp",
-  "image/gif": "gif",
-}
-const MAX_IMAGE_BYTES = 4 * 1024 * 1024 // 4 MB（Node Functions 请求体约 6 MB）
 const RATE_WINDOW = 60 * 1000 // 同 IP 60 秒留言限制
 const RATE_KEY_PREFIX = "likegirl_rate_"
 
@@ -41,16 +33,6 @@ function referencedImages(data) {
     ...(data?.wishes || []).map((x) => x.image),
   ]
   return new Set(urls.map(imageKeyFromUrl).filter(Boolean))
-}
-
-function validImageSignature(bytes, type) {
-  if (type === "image/jpeg") return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff
-  if (type === "image/png") return bytes.slice(0, 8).join(",") === "137,80,78,71,13,10,26,10"
-  if (type === "image/gif")
-    return decoder.decode(bytes.slice(0, 6)) === "GIF87a" || decoder.decode(bytes.slice(0, 6)) === "GIF89a"
-  if (type === "image/webp")
-    return decoder.decode(bytes.slice(0, 4)) === "RIFF" && decoder.decode(bytes.slice(8, 12)) === "WEBP"
-  return false
 }
 
 /* ------------------------------------------------------------------ *
@@ -278,25 +260,9 @@ export function createHandler(repository = { store, readData, writeData, readAut
         return json(data)
       }
 
-      /* ---- 图片上传（需鉴权） ---- */
-      if (path === "admin/upload" && request.method === "POST") {
-        const auth = await readAuth()
-        if (!auth) return json({ error: "请先初始化后台", code: "NOT_INITIALIZED" }, 409)
-        const session = await inspectSession(request, auth.secret)
-        if (!session.ok) return sessionError(session.code)
-        const length = Number(request.headers.get("content-length") || 0)
-        if (length > MAX_IMAGE_BYTES + 256000) return json({ error: "图片不能超过 4 MB" }, 413)
-        const form = await request.formData()
-        const file = form.get("file")
-        if (!(file instanceof Blob) || !file.size) return json({ error: "请选择图片" }, 400)
-        if (file.size > MAX_IMAGE_BYTES) return json({ error: "图片不能超过 4 MB" }, 413)
-        const ext = IMAGE_TYPES[file.type]
-        if (!ext) return json({ error: "仅支持 JPG、PNG、WebP 和 GIF" }, 415)
-        const head = new Uint8Array(await file.slice(0, 16).arrayBuffer())
-        if (!validImageSignature(head, file.type)) return json({ error: "图片文件签名不正确" }, 415)
-        const imageKey = `image_${newId()}.${ext}`
-        await store().set(imageKey, file, { cacheControl: "public,max-age=31536000,immutable" })
-        return json({ url: `/api/media/${imageKey}`, size: file.size, type: file.type }, 201)
+      /* ---- 图片只使用外部图床，旧客户端也禁止写入图片 Blob ---- */
+      if (path === "admin/upload") {
+        return json({ error: "本站已关闭图片上传，请使用第三方图床的图片直链", code: "IMAGE_UPLOAD_DISABLED" }, 410)
       }
 
       return json({ error: "接口不存在" }, 404)

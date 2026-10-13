@@ -35,6 +35,10 @@
 | 路由 | `node-functions/[[default]].js` catch-all |
 | 构建 | Node.js 脚本生成 `dist/` 静态产物 |
 
+## 图片存储
+
+图片仅使用第三方图床直链，本站不再上传图片到 EdgeOne Pages Blob。背景、相册和清单保存图片链接；旧的站内图片地址保留读取兼容。Pages Blob 继续保存文字、配置和管理员凭据。
+
 ## 内容即时更新
 
 后台通过管理 API 仅提交当前表单的字段。服务端读取 Blob 中的最新数据，校验并合并字段，写入成功后才返回成功。前台通过 `/api/data` 读取当前内容，接口和浏览器请求均禁用缓存；刷新前台即可看到修改。
@@ -60,7 +64,7 @@ EdgeOne 版本沿用 OpenList-Worker 的 Pages Blob 键值存储方式。认证�
 
 1. 访问 `/api/health`，确认 `ok`、`storage` 为 `true`；完成初始化后 `initialized` 也为 `true`。
 2. 从页脚进入“管理后台”，首次设置密码后登录。
-3. 上传一张测试图片，确认 `/api/media/image_...` 地址可访问。
+3. 保存第三方图床的图片直链，确认前台图片可显示。
 4. 新增文章或留言，刷新页面确认数据已持久化。
 
 详细存储、API 和排错说明见 [EDGEONE.md](EDGEONE.md)。

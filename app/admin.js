@@ -77,21 +77,6 @@
     }
     return body
   }
-  async function uploadFile(file) {
-    if (!file || !file.size) throw new Error("请选择图片")
-    var form = new FormData()
-    form.append("file", file)
-    var r = await session.request("admin/upload", { method: "POST", body: form })
-    var body = await r.json().catch(function () { return { error: "HTTP " + r.status } })
-    if (!r.ok) { if (r.status === 401) endSession(); throw new Error(body.error || "上传失败") }
-    return body.url
-  }
-  async function uploadAll(fileList) {
-    var files = [].slice.call(fileList || []).filter(function (f) { return f && f.size })
-    var urls = []
-    for (var i = 0; i < files.length; i++) urls.push(await uploadFile(files[i]))
-    return urls
-  }
   async function loadData() {
     data = await api("admin/data")
     return data
@@ -114,12 +99,8 @@
     }
     return "<div class='form-group mb-3'><label>" + esc(label) + "</label><input type='" + t + "' name='" + name + "' class='form-control'" + ph + val + "></div>"
   }
-  function fileField(label, name, accept) {
-    return "<div class='form-group mb-3'><label>" + esc(label) + "</label><input type='file' name='" + name + "' class='form-control' accept='" + (accept || "image/jpeg,image/png,image/webp,image/gif") + "'></div>"
-  }
-  function externalImageOption() {
-    return '<div class="form-group mb-3"><label><input type="checkbox" name="linksOnly"> 仅使用图片链接（跳过本地文件上传）</label>' +
-      '<p class="mb-0">可粘贴第三方图床的 HTTPS 图片直链。请使用图片地址，而非分享页面或 Markdown。图片仍由第三方托管。</p></div>'
+  function imageLinkHelp() {
+    return '<p class="mb-3">图片请上传到第三方图床，再粘贴 HTTPS 图片直链。本站只保存链接，不上传图片。请勿填写分享页面或 Markdown。</p>'
   }
   function formVals(form) {
     var obj = {}
@@ -282,7 +263,7 @@
       field("男主Name", "boy", s.boy) + field("女主Name", "girl", s.girl) + field("男主QQ", "boyQQ", s.boyQQ) + field("女主QQ", "girlQQ", s.girlQQ) + field("起始时间", "startTime", s.startTime, { type: "datetime-local" }) +
       '<div class="form-group mb-3 text_right"><button class="btn btn-primary" type="submit">提交修改</button></div></form></div></div></div>' +
       '<div class="col-lg-12"><div class="card"><div class="card-body"><h4 class="header-title mb-3">卡片配置&版权配置</h4><form id="f-card">' +
-      field("背景图片直链（支持第三方图床）", "background", s.background) + fileField("或上传背景图", "backgroundFile") + externalImageOption() +
+      field("背景图片直链（支持第三方图床）", "background", s.background) + imageLinkHelp() +
       field("卡片1 Name", "card1", s.card1) + field("卡片1描述", "deci1", s.deci1) +
       field("卡片2 Name", "card2", s.card2) + field("卡片2描述", "deci2", s.deci2) +
       field("卡片3 Name", "card3", s.card3) + field("卡片3描述", "deci3", s.deci3) +
@@ -317,9 +298,7 @@
     $("#f-card").on("submit", async function (e) {
       e.preventDefault()
       var v = formVals(this)
-      var file = this.linksOnly.checked ? null : this.backgroundFile.files[0]
       try {
-        if (file) v.background = await uploadFile(file)
         await save({ site: pick(v, ["background", "card1", "deci1", "card2", "deci2", "card3", "deci3", "icp", "copyright", "userName", "userQQ"]) })
         notify("保存成功")
         render()
@@ -407,7 +386,7 @@
       field("日期", "date", p.date, { type: "date" }) +
       field("图片描述", "text", p.text) +
       '<div class="form-group mb-3"><label>第三方图片直链（每行一个，也可用分号分隔）</label><textarea name="urls" class="form-control" rows="3" placeholder="https://图床域名/photo.jpg">' + esc((p.urls || []).join("\n")) + "</textarea></div>" +
-      fileField("或上传图片（可多选，单张最大 4MB）", "files", "image/jpeg,image/png,image/webp,image/gif") + externalImageOption() +
+      imageLinkHelp() +
       '<div class="form-group mb-3 text_right"><button class="btn btn-primary" type="submit">' + (item ? "保存修改" : "新增") + '</button> <button class="btn btn-secondary" type="button" id="cancel-photo">取消</button></div></form></div></div>'
     )
     $("#cancel-photo").on("click", function () { $("#lg-editor").empty() })
@@ -417,9 +396,7 @@
       if (!v.text) return notify("描述不能为空", "error")
       var urls = (v.urls ? v.urls.split(/[;\r\n]+/) : []).map(function (u) { return u.trim() }).filter(Boolean)
       try {
-        var uploaded = this.linksOnly.checked ? [] : await uploadAll(this.files.files)
-        urls = urls.concat(uploaded)
-        if (!urls.length) return notify("请上传图片或填写URL", "error")
+        if (!urls.length) return notify("请填写第三方图片直链", "error")
         var list = data.photos.slice()
         var obj = { id: v.id || uuid(), date: v.date, text: v.text, urls: urls }
         if (v.id) { var i = list.findIndex(function (x) { return x.id === v.id }); if (i >= 0) list[i] = obj; else list.unshift(obj) }
@@ -457,7 +434,7 @@
       field("事件内容", "text", w.text) +
       field("完成状态", "done", String(w.done), { type: "select", options: [["false", "未完成"], ["true", "已完成"]] }) +
       field("图片直链（可选，支持第三方图床）", "image", w.image) +
-      fileField("或上传图片", "imageFile") + externalImageOption() +
+      imageLinkHelp() +
       '<div class="form-group mb-3 text_right"><button class="btn btn-primary" type="submit">' + (item ? "保存修改" : "新增") + '</button> <button class="btn btn-secondary" type="button" id="cancel-wish">取消</button></div></form></div></div>'
     )
     $("#cancel-wish").on("click", function () { $("#lg-editor").empty() })
@@ -466,9 +443,7 @@
       var v = formVals(this)
       v.done = v.done === "true"
       if (!v.text) return notify("事件内容不能为空", "error")
-      var file = this.linksOnly.checked ? null : this.imageFile.files[0]
       try {
-        if (file) v.image = await uploadFile(file)
         var list = data.wishes.slice()
         var obj = { id: v.id || uuid(), text: v.text, image: v.image || "", done: v.done }
         if (v.id) { var i = list.findIndex(function (x) { return x.id === v.id }); if (i >= 0) list[i] = obj; else list.unshift(obj) }
@@ -511,7 +486,7 @@
   function about(c) {
     var a = data.about
     var fields =
-      field("对话标题", "title", a.title) + field("对话模块背景图片直链（支持第三方图床）", "background", a.background) + fileField("或上传背景图", "backgroundFile") + externalImageOption() +
+      field("对话标题", "title", a.title) + field("对话模块背景图片直链（支持第三方图床）", "background", a.background) + imageLinkHelp() +
       field("对话1文本", "info1", a.info1) + field("对话2文本", "info2", a.info2) + field("对话3文本", "info3", a.info3) +
       field("对话1按钮确认文本", "btn1", a.btn1) + field("对话1按钮取消文本", "btn2", a.btn2) +
       '<hr><h5 class="text-center">对话模块 2</h5>' +
@@ -524,9 +499,7 @@
     $("#f-about").on("submit", async function (e) {
       e.preventDefault()
       var v = formVals(this)
-      var file = this.linksOnly.checked ? null : this.backgroundFile.files[0]
       try {
-        if (file) v.background = await uploadFile(file)
         await save({ about: v })
         notify("已保存"); render()
       } catch (e) { notify(e.message, "error") }
