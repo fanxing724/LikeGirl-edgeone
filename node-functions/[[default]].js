@@ -8,7 +8,7 @@
 import { json } from "./_lib/http.js"
 import { store, readData, writeData, readAuth, writeAuth, initializeAuth, StorageError } from "./_lib/repository.js"
 import { cleanText, newId, sanitizeData, publicData } from "./_lib/schema.js"
-import { sign, verify, hash, passwordMatches, createAuthRecord, validPassword, SESSION_TTL } from "./_lib/auth.js"
+import { sign, verify, inspectSession, hash, passwordMatches, createAuthRecord, validPassword, SESSION_TTL } from "./_lib/auth.js"
 
 /* ------------------------------------------------------------------ *
  * 常量
@@ -114,6 +114,16 @@ async function readJson(request) {
 /* ------------------------------------------------------------------ *
  * 路由分发
  * ------------------------------------------------------------------ */
+function sessionError(code) {
+  const messages = {
+    SESSION_MISSING: "未收到登录凭据，请重新登录",
+    SESSION_INVALID: "登录凭据校验失败，请重新登录",
+    SESSION_EXPIRED: "登录已过期，请重新登录",
+    AUTH_UNAVAILABLE: "登录服务暂时不可用，请稍后重试",
+  }
+  return json({ error: messages[code], code }, code === "AUTH_UNAVAILABLE" ? 503 : 401)
+}
+
 export function createHandler(repository = { store, readData, writeData, readAuth, writeAuth, initializeAuth }) {
   const { store, readData, writeData, readAuth, writeAuth, initializeAuth } = repository
   return async function onRequest(context) {
@@ -225,6 +235,8 @@ export function createHandler(repository = { store, readData, writeData, readAut
         if (!input || !(await passwordMatches(input.password, auth))) return json({ error: "密码错误" }, 403)
         const expiresAt = Date.now() + SESSION_TTL
         const token = await sign({ role: "admin", exp: expiresAt }, auth.secret)
+        const check = new Request(request.url, { headers: { authorization: "Bearer " + token } })
+        if (!(await verify(check, auth.secret))) return json({ error: "登录会话创建失败，请稍后重试", code: "SESSION_SIGNING_FAILED" }, 503)
         return json({ token, expiresAt }, 200, {
           "set-cookie": `lg_session=${token}; Path=/api; HttpOnly; SameSite=Strict; Max-Age=${SESSION_TTL / 1000}${url.protocol === "https:" ? "; Secure" : ""}`,
         })
@@ -232,7 +244,9 @@ export function createHandler(repository = { store, readData, writeData, readAut
 
       if (path === "admin/password" && request.method === "POST") {
         const auth = await readAuth()
-        if (!auth || !(await verify(request, auth.secret))) return json({ error: "会话无效或已过期，请重新登录" }, 401)
+        if (!auth) return json({ error: "请先初始化后台", code: "NOT_INITIALIZED" }, 409)
+        const session = await inspectSession(request, auth.secret)
+        if (!session.ok) return sessionError(session.code)
         const input = await readJson(request)
         if (!(await passwordMatches(input?.currentPassword, auth))) return json({ error: "当前密码错误" }, 403)
         if (!validPassword(input?.password) || input.password !== input.confirmPassword) return json({ error: "新密码须为 8 至 256 个字符，且两次输入一致" }, 400)
@@ -248,7 +262,8 @@ export function createHandler(repository = { store, readData, writeData, readAut
       if (path === "admin/data" && (request.method === "GET" || request.method === "PUT")) {
         const auth = await readAuth()
         if (!auth) return json({ error: "请先初始化后台", code: "NOT_INITIALIZED" }, 409)
-        if (!(await verify(request, auth.secret))) return json({ error: "会话无效或已过期，请重新登录" }, 401)
+        const session = await inspectSession(request, auth.secret)
+        if (!session.ok) return sessionError(session.code)
         const current = await readData()
         if (request.method === "GET") return json(current)
         const patch = await readJson(request)
@@ -267,7 +282,8 @@ export function createHandler(repository = { store, readData, writeData, readAut
       if (path === "admin/upload" && request.method === "POST") {
         const auth = await readAuth()
         if (!auth) return json({ error: "请先初始化后台", code: "NOT_INITIALIZED" }, 409)
-        if (!(await verify(request, auth.secret))) return json({ error: "会话无效或已过期" }, 401)
+        const session = await inspectSession(request, auth.secret)
+        if (!session.ok) return sessionError(session.code)
         const length = Number(request.headers.get("content-length") || 0)
         if (length > MAX_IMAGE_BYTES + 256000) return json({ error: "图片不能超过 4 MB" }, 413)
         const form = await request.formData()
