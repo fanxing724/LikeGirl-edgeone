@@ -100,7 +100,10 @@ EDGEONE.md                         详细部署文档
 
 - 原项目：[Ki./likegirl-stable](https://gitee.com/kiCode111/likegirl-stable)
 - 社区版：[ShiFengShuA/LikeGirl-CE](https://gitee.com/shifengshua/LikeGirl-CE)
-- EdgeOne 适配：[fanxing724/LikeGirl-edgeone](https://github.com/fanxing724/LikeGirl-edgeone)
+- EdgeOne 适配作者与维护者：[番星（fanxing724）](https://github.com/fanxing724)
+- EdgeOne 适配仓库：[fanxing724/LikeGirl-edgeone](https://github.com/fanxing724/LikeGirl-edgeone)
+
+番星负责本仓库的静态前端适配、EdgeOne Node.js 云函数、Pages Blob 存储与图片上传、构建配置，以及后续维护和问题修复。
 
 请保留上游作者署名与源文件中的版权声明。详细来源和权利说明见 [NOTICE](NOTICE)。
 
