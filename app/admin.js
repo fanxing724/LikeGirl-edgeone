@@ -126,6 +126,7 @@
 
   /* -------------------- 登录 -------------------- */
   function renderLogin() {
+    document.body.classList.remove("lg-menu-open")
     document.body.classList.add("lg-login-mode")
     $("#lg-admin").html(
       '<div id="lg-login"><div class="card"><div class="card-body text-center">' +
@@ -158,7 +159,7 @@
   /* -------------------- 框架（顶栏 + 侧栏 + 内容） -------------------- */
   function render() {
     if (!token || !data) return renderLogin()
-    document.body.classList.remove("lg-login-mode")
+    document.body.classList.remove("lg-login-mode", "lg-menu-open")
     var s = data.site
     var chrome =
       '<div class="navbar-custom topnav-navbar"><div class="container-fluid">' +
@@ -168,10 +169,11 @@
       '<li class="dropdown notification-list"><a class="nav-link dropdown-toggle nav-user arrow-none mr-0" href="#settings"><span class="account-user-avatar"><img src="' + esc(ownerAvatar(s.userName, s.userQQ)) + '" alt="user-image" class="rounded-circle"></span>' +
       '<span><span class="account-user-name">' + esc(s.userName) + '</span><span class="account-position">操作</span></span></a></li>' +
       "</ul>" +
-      '<a class="button-menu-mobile disable-btn"><div class="lines"><span></span><span></span><span></span></div></a>' +
+      '<button type="button" class="lg-menu-toggle" aria-label="打开导航菜单" aria-controls="lg-sidebar" aria-expanded="false"><i class="dripicons-menu" aria-hidden="true"></i></button>' +
       '<div class="app-search"></div></div></div>' +
       '<div class="container-fluid"><div class="wrapper">' +
-      '<div class="left-side-menu"><div class="leftbar-user"><a href="#"><img src="' + esc(ownerAvatar(s.userName, s.userQQ)) + '" height="42" class="rounded-circle shadow-sm"><span class="leftbar-user-name">' + esc(s.title) + "</span></a></div>" +
+      '<button type="button" class="lg-menu-backdrop" aria-label="关闭导航菜单" hidden></button>' +
+      '<div class="left-side-menu" id="lg-sidebar"><div class="leftbar-user"><a href="#"><img src="' + esc(ownerAvatar(s.userName, s.userQQ)) + '" height="42" class="rounded-circle shadow-sm"><span class="leftbar-user-name">' + esc(s.title) + "</span></a></div>" +
       '<ul class="metismenu side-nav">' +
       sideItem("dashboard", "dripicons-direction", "后台首页") +
       sideItem("settings", "dripicons-meter", "基本设置") +
@@ -190,6 +192,19 @@
       '<footer class="footer"><div class="row footer_center"><div class="col-md-6">Copyright © 2022-' + new Date().getFullYear() + ' <a href="https://blog.kikiw.cn/index.php/archives/52/" target="_blank">Ki</a> All Rights Reserved.</div></div></footer>' +
       "</div></div></div>"
     $("#lg-admin").html(chrome)
+    var toggle = document.querySelector(".lg-menu-toggle")
+    var backdrop = document.querySelector(".lg-menu-backdrop")
+    function setMenu(open) {
+      document.body.classList.toggle("lg-menu-open", open)
+      toggle.setAttribute("aria-expanded", String(open))
+      toggle.setAttribute("aria-label", open ? "关闭导航菜单" : "打开导航菜单")
+      backdrop.hidden = !open
+    }
+    toggle.addEventListener("click", function () { setMenu(!document.body.classList.contains("lg-menu-open")) })
+    backdrop.addEventListener("click", function () { setMenu(false) })
+    document.querySelector("#lg-sidebar").addEventListener("click", function (e) {
+      if (e.target.closest("a")) setMenu(false)
+    })
     renderContent()
   }
   function sideItem(name, icon, label, count) {
@@ -275,7 +290,7 @@
   function boolFields(v, keys) { keys.forEach(function (k) { v[k] = v[k] === "true" || v[k] === true }); return v }
   async function submitSite(form, keys) {
     var v = formVals(form)
-    if (["blur", "pjax", "animation"].some(function (k) { return keys.indexOf(k) >= 0 })) boolFields(v, keys)
+    boolFields(v, ["blur", "pjax", "animation"].filter(function (k) { return keys.indexOf(k) >= 0 }))
     try {
       await save({ site: Object.assign({}, data.site, pick(v, keys)) })
       notify("保存成功")
@@ -562,5 +577,11 @@
     }
   }
   window.addEventListener("hashchange", function () { route = getRoute(); if (data) render() })
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && document.body.classList.contains("lg-menu-open")) {
+      document.querySelector(".lg-menu-backdrop").click()
+      document.querySelector(".lg-menu-toggle").focus()
+    }
+  })
   boot()
 })()

@@ -167,3 +167,45 @@ body.lg-login-mode::after {
 }
 #lg-login .btn-primary { width: 100%; padding: 0.65rem; font-size: 1.02rem; }
 #lg-login .lg-login-sub { color: #9a8fa3; font-size: 0.85rem; }
+
+
+/* 动态后台自行管理移动端导航，不依赖主题脚本的启动时绑定。 */
+.lg-menu-toggle, .lg-menu-backdrop { display: none; }
+@media (max-width: 767.98px) {
+  .lg-menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 70px;
+    border: 0;
+    background: transparent;
+    color: #fff;
+    font-size: 24px;
+    cursor: pointer;
+  }
+  body:not(.lg-login-mode) .left-side-menu {
+    display: none;
+    position: fixed;
+    top: 70px;
+    bottom: 0;
+    left: 0;
+    width: min(260px, 85vw);
+    height: auto;
+    padding-top: 0;
+    overflow-y: auto;
+    z-index: 1002;
+  }
+  body.lg-menu-open { overflow: hidden; }
+  body.lg-menu-open .left-side-menu { display: block; }
+  .lg-menu-backdrop:not([hidden]) {
+    display: block;
+    position: fixed;
+    inset: 70px 0 0;
+    border: 0;
+    background: rgba(0, 0, 0, 0.35);
+    z-index: 1001;
+  }
+  .card .card-body { padding: 1rem; }
+  .table-responsive { overflow-x: auto; }
+}
