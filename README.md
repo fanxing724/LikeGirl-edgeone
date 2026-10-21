@@ -1,3 +1,16 @@
+<!-- fanxing-style:start -->
+<picture>
+  <source media="(prefers-color-scheme: light)" srcset="https://fanxing724.github.io/new-make/fanxing724/projects/LikeGirl-edgeone/cover.light.svg">
+  <img alt="LikeGirl · 一起的小日子" src="https://fanxing724.github.io/new-make/fanxing724/projects/LikeGirl-edgeone/cover.svg" width="100%">
+</picture>
+
+**把两个人的片刻，安放在自己的小站。**
+
+照片、纪念日和想说的话，可以有一个属于两个人的地方。这个仓库把情侣记录小站适配到 EdgeOne，保留原项目来源与许可，也记录适配过程。
+
+<sub>番星 / 星轨手记 · <a href="https://fanxing724.github.io/new-make/fanxing724/projects/style.html">风格样板</a> · <a href="https://fanxing724.github.io/">个人小站</a></sub>
+<!-- fanxing-style:end -->
+
 # LikeGirl EdgeOne
 
 一个可部署到 EdgeOne Makers/Pages 的轻量情侣纪念小站。项目由 LikeGirl-CE 适配而来，使用静态前端、Node.js 云函数和 EdgeOne Pages Blob，不需要 PHP 服务器或 MySQL。
