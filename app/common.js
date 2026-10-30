@@ -54,6 +54,13 @@
     THEAD: 1, TBODY: 1, TR: 1, TD: 1, TH: 1,
   }
   var ALLOWED_ATTR = /^(href|src|alt|title|width|height|style|controls|target|colspan|rowspan|color|size|face|align|valign|class)$/i
+  function safeContentURL(value, attribute) {
+    // 浏览器会忽略协议中的制表符和换行，先统一再检查。
+    var normalized = value.replace(/[\u0000-\u0020\u007f]/g, "")
+    var scheme = /^([a-z][a-z0-9+.-]*):/i.exec(normalized)
+    return !scheme || /^(https?)$/i.test(scheme[1]) ||
+      (attribute === "href" && /^(mailto|tel)$/i.test(scheme[1]))
+  }
   function sanitizeHTML(htmlStr) {
     var doc = new DOMParser().parseFromString("<div>" + htmlStr + "</div>", "text/html")
     walk(doc.body)
@@ -66,6 +73,8 @@
       if (el.nodeType === 1) {
         var tag = el.tagName
         if (!ALLOWED_TAGS[tag]) {
+          // 子节点提升到父级前也必须清洗，避免嵌套事件属性绕过检查。
+          walk(el)
           // 保留内部文本与子节点，移除危险标签本身
           while (el.firstChild) node.insertBefore(el.firstChild, el)
           node.removeChild(el)
@@ -74,11 +83,11 @@
         // 清理属性
         var attrs = [].slice.call(el.attributes)
         for (var j = 0; j < attrs.length; j++) {
-          var name = attrs[j].name
+          var name = attrs[j].name.toLowerCase()
           var val = attrs[j].value
           if (name.toLowerCase().indexOf("on") === 0 || !ALLOWED_ATTR.test(name)) {
             el.removeAttribute(name)
-          } else if ((name === "href" || name === "src") && /^\s*javascript:/i.test(val)) {
+          } else if ((name === "href" || name === "src") && !safeContentURL(val, name)) {
             el.removeAttribute(name)
           }
         }

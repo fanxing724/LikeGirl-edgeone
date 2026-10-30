@@ -6,6 +6,7 @@
  */
 
 import { json } from "./_lib/http.js"
+import { createHealthHandler } from "./_lib/health.js"
 import { store, readData, writeData, readAuth, writeAuth, initializeAuth, StorageError } from "./_lib/repository.js"
 import { cleanText, newId, sanitizeData, publicData } from "./_lib/schema.js"
 import { sign, verify, inspectSession, hash, passwordMatches, createAuthRecord, validPassword, SESSION_TTL } from "./_lib/auth.js"
@@ -108,6 +109,7 @@ function sessionError(code) {
 
 export function createHandler(repository = { store, readData, writeData, readAuth, writeAuth, initializeAuth }) {
   const { store, readData, writeData, readAuth, writeAuth, initializeAuth } = repository
+  const health = createHealthHandler(repository)
   return async function onRequest(context) {
     const { request } = context
     const url = new URL(request.url)
@@ -118,10 +120,7 @@ export function createHandler(repository = { store, readData, writeData, readAut
 
     try {
       /* ---- 健康检查 ---- */
-      if (path === "health" && request.method === "GET") {
-        await readData()
-        return json({ ok: true, storage: true, initialized: Boolean(await readAuth()) })
-      }
+      if (["health", "health/live", "health/ready"].includes(path)) return health(request, path)
 
       /* ---- 媒体读取 ---- */
       if (path.startsWith("media/") && request.method === "GET") {

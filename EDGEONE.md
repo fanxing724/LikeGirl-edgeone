@@ -62,7 +62,9 @@ BASE=https://你的域名 TOKEN=<后台登录token> node scripts/import-json.mjs
 
 | 路径 | 方法 | 用途 |
 | --- | --- | --- |
-| `/api/health` | GET | 存储健康检查与初始化状态 |
+| `/api/health` | GET / HEAD | 存储健康检查与初始化状态；正常 200，故障或超时 503 |
+| `/api/health/live` | GET / HEAD | 云函数存活检查，不访问存储 |
+| `/api/health/ready` | GET / HEAD | 就绪检查，存储正常且已初始化才返回 200，否则 503 |
 | `/api/setup/status` | GET | 查询是否已初始化 |
 | `/api/setup` | POST | 首次设置管理员密码 |
 | `/api/admin/password` | POST | 校验当前密码并修改密码，需管理会话 |

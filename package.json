@@ -16,5 +16,8 @@
   },
   "dependencies": {
     "@edgeone/pages-blob": "^0.0.14"
+  },
+  "devDependencies": {
+    "jsdom": "^30.1.3"
   }
 }
