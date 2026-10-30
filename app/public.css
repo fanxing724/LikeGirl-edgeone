@@ -10,12 +10,6 @@ body.lg-public { font-size: 15px; line-height: 1.7; }
 .lg-public .header .logo h1 { font-family: var(--lg-serif); font-size: 23px; letter-spacing: .04em; }
 .lg-public .header .word { font: 13px var(--lg-font); }
 .lg-public .header .alogo, .lg-public .header .wenan { color: var(--lg-ink) !important; }
-.lg-public .lg-public-nav {
-  display: flex; justify-content: center; gap: 5px; flex-wrap: wrap;
-  padding: 12px 20px; background: var(--lg-surface); border-bottom: 1px solid var(--lg-line);
-}
-.lg-public-nav a { display: block; padding: 7px 20px; font-size: 14px; color: var(--lg-muted); border-radius: 999px; white-space: nowrap; }
-.lg-public-nav a:hover, .lg-public-nav a[aria-current="page"] { background: var(--lg-tint); color: var(--lg-rose); }
 .lg-public .bg-wrap { padding-top: 0; }
 .lg-public .bg-img { min-height: 310px; padding: 32px 16px; display: grid; place-items: center; position: relative; }
 .lg-public .bg-img::before { background: #392a2426; pointer-events: none; }
@@ -90,8 +84,6 @@ body.lg-public { font-size: 15px; line-height: 1.7; }
   .lg-public .header-wrap .header { padding: 18px 20px; justify-content: center; }
   .lg-public .header .logo h1 { font-size: 21px; }
   .lg-public .header .word { display: none; }
-  .lg-public .lg-public-nav { padding: 8px; gap: 0; }
-  .lg-public-nav a { padding: 7px 11px; font-size: 13px; }
   .lg-public .bg-img { min-height: 260px; padding: 28px 18px; }
   .lg-public .bg-img .middle { padding: 24px; border-radius: 24px; }
   .lg-public .bg-img .middle img { width: 64px; height: 64px; }
@@ -137,7 +129,5 @@ html { font-size:14px; }
 .lg-public #lovelist .success,.lg-public #lovelist .com { color:var(--lg-sage); }
 .lg-public #lovelist .cike { padding:8px 0; border-bottom-color:var(--lg-line); }
 @media (max-width:767px) {
- .lg-public .lg-public-nav { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
- .lg-public-nav a { text-align:center; }
  .lg-public .MessageButtonCard .Message-Icon { width:20px; height:20px; }
 }

@@ -148,15 +148,11 @@
     if (!host) return
     var anim = s.animation ? "animated fadeInDown" : ""
     var blurOff = s.blur === false ? "Blurkg" : ""
-    var currentPath = location.pathname === "/" ? "/index.html" : location.pathname
-    if (currentPath === "/page.html") currentPath = "/little.html"
-    var navigation = [["/index.html", "我们的小站"], ["/little.html", "点点滴滴"], ["/loveImg.html", "恋爱相册"], ["/list.html", "恋爱清单"], ["/leaving.html", "留言祝福"], ["/about.html", "关于我们"]]
-      .map(function (item) { return '<a href="' + item[0] + '"' + (currentPath === item[0] ? ' aria-current="page"' : "") + '>' + item[1] + '</a>' }).join("")
     host.innerHTML =
       '<div class="header-wrap"><div class="header">' +
       '<div class="logo"><h1><a class="alogo" href="/index.html">' + logoHtml(s.logo) + "</a></h1></div>" +
       '<div class="word" data-tip="' + esc(s.writing) + '" data-tip-position="bottom"><span class="wenan">' + esc(s.writing) + "</span></div>" +
-      '</div></div><nav class="lg-public-nav" aria-label="小站导航">' + navigation + '</nav>' +
+      "</div></div>" +
       '<div class="bg-wrap"><div class="bg-img"><div class="central central-800">' +
       '<div class="middle ' + anim + " " + blurOff + '">' +
       '<div class="img-male"><img src="' + esc(qqAvatar(s.boyQQ, 640)) + '" draggable="false"><span>' + esc(s.boy) + "</span></div>" +
