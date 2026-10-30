@@ -152,34 +152,6 @@ function sanitizeMessages(input, base) {
   })
 }
 
-function sanitizeBlockedIps(input, base) {
-  if (!Array.isArray(input)) return base || []
-  return input.slice(0, 5000).map((x) => {
-    const o = x && typeof x === "object" ? x : {}
-    return {
-      id: cleanText(o.id, 80) || newId(),
-      ip: cleanText(o.ip ?? o.State, 60),
-      note: cleanText(o.note ?? o.text, 200),
-      location: cleanText(o.location ?? o.ipAdd, 100),
-      createdAt: cleanText(o.createdAt ?? o.Time, 40),
-    }
-  })
-}
-
-function sanitizeAccessWarnings(input, base) {
-  if (!Array.isArray(input)) return base || []
-  return input.slice(0, 5000).map((x) => {
-    const o = x && typeof x === "object" ? x : {}
-    return {
-      id: cleanText(o.id, 80) || newId(),
-      ip: cleanText(o.ip, 60),
-      location: cleanText(o.location ?? o.gsd, 100),
-      path: cleanText(o.path ?? o.file, 200),
-      createdAt: cleanText(o.createdAt ?? o.time, 40),
-    }
-  })
-}
-
 /** 对整份 patch 做权威校验，未提供的 section 保留 current。 */
 export function sanitizeData(patch, current) {
   const data = structuredClone(current)
@@ -190,8 +162,6 @@ export function sanitizeData(patch, current) {
   if (Array.isArray(patch.photos)) data.photos = sanitizePhotos(patch.photos, current.photos)
   if (Array.isArray(patch.wishes)) data.wishes = sanitizeWishes(patch.wishes, current.wishes)
   if (Array.isArray(patch.messages)) data.messages = sanitizeMessages(patch.messages, current.messages)
-  if (Array.isArray(patch.blockedIps)) data.blockedIps = sanitizeBlockedIps(patch.blockedIps, current.blockedIps)
-  if (Array.isArray(patch.accessWarnings)) data.accessWarnings = sanitizeAccessWarnings(patch.accessWarnings, current.accessWarnings)
   return data
 }
 

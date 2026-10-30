@@ -30,19 +30,23 @@
 - 兼容读取旧的站内 Blob 图片；上传接口已停用。
 - 后台使用 HMAC 签名会话，用户文本统一转义输出。
 
+## 平台适配范围
+
+后台已移除整站 IP 拉黑和非法访问记录：当前静态页面不经过 API 云函数，无法沿用原 PHP 的整站拦截与记录方式。整站访问控制与日志请在部署平台配置。历史封禁与访问记录保留在存储中，但不再执行或提供编辑；留言的 IP 限流和违禁词过滤继续保留。详情见 [平台能力边界](EDGEONE.md#平台能力边界)及[函数限制与取舍](EDGEONE.md#edgeone-函数的限制与本项目取舍)。
+
 ## 架构
 
 ```text
 浏览器
   ├─ 静态页面 ────────────→ EdgeOne Pages CDN
   ├─ 站点数据/留言/后台 ──→ Node.js Cloud Function
-  └─ 图片上传与读取 ─────→ EdgeOne Pages Blob
+  └─ 旧版图片读取 ──────→ EdgeOne Pages Blob
 ```
 
 | 部分 | 实现 |
 | --- | --- |
 | 前端 | 原生 HTML/CSS/JavaScript |
-| API | EdgeOne Node Functions，Node.js 22 |
+| API | EdgeOne Node 云函数，运行时由平台提供 |
 | 存储 | `@edgeone/pages-blob`，强一致读取 |
 | 路由 | `node-functions/[[default]].js` catch-all |
 | 构建 | Node.js 脚本生成 `dist/` 静态产物 |
@@ -59,18 +63,58 @@
 
 ## 部署
 
-点击项目顶部的 **Deploy to EdgeOne** 按钮，或在 EdgeOne Makers 中导入本仓库。[`edgeone.json`](edgeone.json) 已预置：
+优先使用 EdgeOne，按你的账号所在站点选择国内版或国际版。国内版与国际版分别创建项目、存储与域名配置，不要把一侧的初始化状态视为另一侧已完成。
+
+| 方案 | 当前代码支持情况 | 说明 |
+| --- | --- | --- |
+| EdgeOne 国内版 | 使用现有 Node 函数与 Pages Blob | 国内访客优先考虑；选择包含中国大陆的加速区域时，自定义域名须完成备案 |
+| EdgeOne 国际版 | 使用现有 Node 函数与 Pages Blob | 顶部部署按钮进入国际站；按账号可用区域配置域名 |
+| Cloudflare Workers / Pages | 需要适配函数入口和存储，不能直接导入本仓库获得完整功能 | 不推荐面向国内访客部署，国内访问通常较慢且波动较大；主要面向海外时再考虑 |
+
+### EdgeOne 国内版部署
+
+1. Fork 本仓库，登录 [腾讯云 EdgeOne 控制台](https://console.cloud.tencent.com/edgeone)，进入 Pages / Makers 创建项目。
+2. 选择 Git 仓库部署，授权并导入你的仓库，选择部署分支；框架选择其他或自定义，项目根目录保持仓库根目录。
+3. 填写下面的共用构建配置，部署时保留根目录的 `node-functions/` 与 `edgeone.json`，不要只上传 `dist/` 静态文件。
+4. 部署后检查 Blob 可用性，完成初始化和下方验收，再绑定自定义域名。包含中国大陆的加速区域需要已备案域名，具体以控制台提示为准。
+
+### EdgeOne 国际版部署
+
+1. 登录 [EdgeOne 国际站](https://edgeone.ai/)，进入 Pages / Makers，点击仓库顶部 **Deploy to EdgeOne**，或手动导入你 Fork 后的仓库。
+2. 选择部署分支与仓库根目录，使用下面的共用构建配置。
+3. 构建完成后检查函数与 Blob，访问 `/admin.html` 初始化后台，再配置域名与 HTTPS。加速区域以当前账号控制台可选项为准；不能仅凭“国际版”判断是否覆盖中国大陆节点。
+
+### EdgeOne 共用构建配置
+
+[`edgeone.json`](edgeone.json) 已预置：
 
 ```text
+框架：其他 / 自定义
+项目根目录：仓库根目录
 安装命令：npm install
 构建命令：npm run build
 输出目录：dist
 Node.js：22.21.1
 ```
 
-无需配置管理员密码或会话密钥环境变量。部署后访问 `/admin.html`，未初始化时会自动进入 `/init.html`，设置并确认管理员密码后即可登录。
+函数入口为 `node-functions/[[default]].js`。Node.js 版本是项目构建配置，不代表函数运行时版本也能任意指定。优先使用 Git 导入，让平台同时构建静态资源和函数。
 
-EdgeOne 版本沿用 OpenList-Worker 的 Pages Blob 键值存储方式。认证记录保存在 `likegirl_ce` Store 的 `likegirl_admin_auth` 键中，包含带盐 PBKDF2-SHA256 密码哈希和随机会话签名密钥；明文密码不会存储。站点内容和认证记录分开保存。
+无需配置管理员密码或会话密钥环境变量，也无需 MySQL。Pages Blob 由 EdgeOne 运行环境提供部署凭据，使用 `likegirl_ce` Store；认证记录位于 `likegirl_admin_auth`，内容位于 `likegirl_site_data`。首次访问 `/admin.html` 自动进入 `/init.html` 设置密码。不要把生产凭据写入仓库，也不要在升级或重新部署时清空存储。
+
+### Cloudflare 部署说明（不推荐用于国内访问）
+
+Cloudflare 平台可承载同类网站，但本仓库当前是 EdgeOne 适配版，**尚未提供可直接部署的 Cloudflare 后端**。只把 `dist/` 上传到 Cloudflare Pages 会缺少 `/api/*`，后台、留言和数据加载无法正常工作；开启 `nodejs_compat` 也不会自动把 EdgeOne Blob 转换成 Cloudflare 存储。
+
+如需迁移，前端仍可执行 `npm run build` 并发布 `dist/`，后端则需另行完成：
+
+1. 将 API 包装为 Workers 的 `fetch` 入口，或 Pages 的 `functions/` 路由，并启用所需 Node.js 兼容配置。
+2. 用 D1、R2 或其他持久化存储替换 `@edgeone/pages-blob`，保留内容、管理员凭据与限流数据的读写约定；不能直接复用 EdgeOne 的运行时存储绑定。
+3. 迁移已有数据与旧图片，使用可信客户端 IP，验证 PBKDF2 密码派生、会话、留言限流和保存后读取行为，并检查所用套餐的 CPU/存储限制。
+4. API 与静态页面部署到同一站点路径，完成下方全部验收后再切换域名。
+
+本项目不建议以国内访客为主的站点选择 Cloudflare：国内访问通常较慢且受地区、运营商和线路影响。该建议不是本仓库的网络测速结果，部署前应自行实测。
+
+完整说明与官方资料见 [部署指南](EDGEONE.md#部署)。
 
 ### 部署后验收
 
@@ -130,7 +174,7 @@ EDGEONE.md                         详细部署文档
 - EdgeOne 适配作者与维护者：[番星（fanxing724）](https://github.com/fanxing724)
 - EdgeOne 适配仓库：[fanxing724/LikeGirl-edgeone](https://github.com/fanxing724/LikeGirl-edgeone)
 
-番星负责本仓库的静态前端适配、EdgeOne Node.js 云函数、Pages Blob 存储与图片上传、构建配置，以及后续维护和问题修复。
+番星负责本仓库的静态前端适配、EdgeOne Node.js 云函数、Pages Blob 存储与旧版图片兼容、构建配置，以及后续维护和问题修复。
 
 请保留上游作者署名与源文件中的版权声明。详细来源和权利说明见 [NOTICE](NOTICE)。
 

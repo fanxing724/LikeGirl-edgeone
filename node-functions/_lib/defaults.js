@@ -50,15 +50,13 @@ export const defaults = {
     infod2: "点点滴滴 little",
     infod3: "留言板 leaving",
     infod4: "关于 about",
-    infod5: "欢迎您的来访 IP已记录 请尽情浏览本站～",
+    infod5: "欢迎您的来访 请尽情浏览本站～",
   },
   messageSettings: {
     displayLimit: 100,
     blockedCharacters: "`~!@#$^&*()=|{}':;',\\[].<>/?~！@#￥……&*（）——|{}【】‘；：”“'。，、？",
     blockedWords: "",
   },
-  blockedIps: [],
-  accessWarnings: [],
   stories: [
     {
       id: "welcome",

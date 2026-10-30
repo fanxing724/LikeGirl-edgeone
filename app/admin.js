@@ -184,8 +184,6 @@
       sideItem("photos", "dripicons-photo-group", "恋爱相册", data.photos.length) +
       sideItem("wishes", "dripicons-location", "恋爱清单", data.wishes.length) +
       sideItem("about", "dripicons-tags", "关于页面") +
-      sideItem("ips", "dripicons-location", "IP/拉黑", data.blockedIps.length) +
-      sideItem("warnings", "dripicons-time-reverse", "非法访问", data.accessWarnings.length) +
       '<li class="side-nav-item"><a href="#info" class="side-nav-link"><i class="dripicons-information"></i><span> 关于Like Girl</span></a></li>' +
       "</ul>" +
       '<div class="help-box text-center"><img src="/admin/assets/images/help-icon.svg" height="90"><h5 class="mt-3">Like_Girl v5.2.1-Stable</h5><p class="mb-3">愿得一心人 白头不相离</p><a href="https://gitee.com/kiCode111/like-girl-v5.2.0" target="_blank" class="btn btn-outline-primary btn-sm">原项目地址</a></div>' +
@@ -219,7 +217,7 @@
   }
   function renderContent() {
     var c = $("#lg-content")
-    var map = { dashboard: dashboard, settings: settings, messages: messages, stories: stories, photos: photos, wishes: wishes, about: about, ips: ips, warnings: warnings, info: info }
+    var map = { dashboard: dashboard, settings: settings, messages: messages, stories: stories, photos: photos, wishes: wishes, about: about, info: info }
     ;(map[route] || dashboard)(c)
   }
 
@@ -506,51 +504,6 @@
     })
   }
 
-  /* -------------------- IP 封禁 -------------------- */
-  function ips(c) {
-    var rows = data.blockedIps.map(function (x, i) {
-      return "<tr><td><div class='SerialNumber'>" + (i + 1) + "</div></td><td>" + esc(x.location || "—") + "</td><td><small class='text-muted'>" + esc(x.createdAt || "") + "</small></td><td><h5><span class='badge badge-success-lighten'>" + esc(x.note || "") + "</span></h5></td><td><h5><span class='badge badge-danger-lighten'>" + esc(x.ip || "—") + "</span></h5></td><td><button class='btn btn-danger btn-rounded btn-sm' data-del='" + esc(x.id) + "'>删除</button></td></tr>"
-    }).join("") || '<tr><td colspan="6" class="lg-empty">暂无封禁IP</td></tr>'
-    c.html(
-      '<div class="row"><div class="col-12"><div class="card"><div class="card-body">' +
-        '<h4 class="header-title mb-3 size_18">IP封禁管理</h4>' +
-        '<div class="table-responsive"><table class="table dt-responsive nowrap" width="100%"><thead><tr><th>序号</th><th>IP归属地</th><th>Date</th><th>备注</th><th>IP</th><th style="width:125px">操作</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
-        "</div></div></div></div>" +
-        '<div class="row"><div class="col-lg-12"><div class="card"><div class="card-body"><h4 class="header-title mb-3">新增封禁IP</h4><form id="f-ip">' +
-        field("IP地址", "ip", "") + field("信息备注", "note", "") +
-        '<div class="form-group mb-3 text_right"><button class="btn btn-primary" type="submit">提交添加</button></div></form></div></div></div></div>'
-    )
-    c.find("[data-del]").on("click", async function () {
-      if (!confirm("确定删除该封禁IP？")) return
-      try { await save({ blockedIps: data.blockedIps.filter(function (x) { return x.id !== this.getAttribute("data-del") }.bind(this)) }); notify("已删除"); render() } catch (e) { notify(e.message, "error") }
-    })
-    $("#f-ip").on("submit", async function (e) {
-      e.preventDefault()
-      var v = formVals(this)
-      if (!v.ip) return notify("请输入IP", "error")
-      var list = data.blockedIps.slice()
-      list.unshift({ id: uuid(), ip: v.ip, note: v.note, location: "手动添加", createdAt: new Date().toISOString() })
-      try { await save({ blockedIps: list }); notify("已添加"); render() } catch (e) { notify(e.message, "error") }
-    })
-  }
-
-  /* -------------------- 非法访问 -------------------- */
-  function warnings(c) {
-    var rows = data.accessWarnings.map(function (x, i) {
-      return "<tr><td><div class='SerialNumber'>" + (i + 1) + "</div></td><td>" + esc(x.ip || "—") + "</td><td>" + esc(x.location || "—") + "</td><td>" + esc(x.path || "—") + "</td><td><small class='text-muted'>" + esc(x.createdAt || "") + "</small></td></tr>"
-    }).join("") || '<tr><td colspan="5" class="lg-empty">暂无非法访问记录</td></tr>'
-    c.html(
-      '<div class="row"><div class="col-12"><div class="card"><div class="card-body">' +
-        '<h4 class="header-title mb-3 size_18">非法访问记录<button class="btn btn-danger btn-sm margin_left" id="clear-warn">清空</button></h4>' +
-        '<div class="table-responsive"><table class="table dt-responsive nowrap" width="100%"><thead><tr><th>序号</th><th>IP</th><th>归属地</th><th>路径</th><th>时间</th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
-        "</div></div></div></div>"
-    )
-    $("#clear-warn").on("click", async function () {
-      if (!confirm("确定清空全部非法访问记录？")) return
-      try { await save({ accessWarnings: [] }); notify("已清空"); render() } catch (e) { notify(e.message, "error") }
-    })
-  }
-
   /* -------------------- 关于 Like Girl（静态） -------------------- */
   function info(c) {
     c.html(
@@ -574,7 +527,7 @@
   /* -------------------- 启动 -------------------- */
   function getRoute() {
     var h = (location.hash || "#dashboard").slice(1)
-    return ["dashboard", "settings", "messages", "stories", "photos", "wishes", "about", "ips", "warnings", "info"].indexOf(h) >= 0 ? h : "dashboard"
+    return ["dashboard", "settings", "messages", "stories", "photos", "wishes", "about", "info"].indexOf(h) >= 0 ? h : "dashboard"
   }
   async function boot() {
     try {

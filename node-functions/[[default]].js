@@ -165,10 +165,6 @@ export function createHandler(repository = { store, readData, writeData, readAut
 
         const data = await readData()
 
-        // IP 封禁
-        const banned = (data.blockedIps || []).some((x) => x.ip && x.ip === ip)
-        if (banned) return json({ error: "你的 IP 已被封禁，禁止留言" }, 403)
-
         // 违禁词/违禁符号
         const hit = blockedHit(text, data.messageSettings)
         if (hit) return json({ error: hit.type === "word" ? "留言包含违禁词，请注意言辞" : "留言包含非法字符" }, 400)
@@ -249,6 +245,9 @@ export function createHandler(repository = { store, readData, writeData, readAut
         if (request.method === "GET") return json(current)
         const patch = await readJson(request)
         if (!patch || typeof patch !== "object" || Array.isArray(patch)) return json({ error: "无效数据" }, 400)
+        if (["blockedIps", "accessWarnings"].some((key) => Object.hasOwn(patch, key))) {
+          return json({ error: "当前版本不支持整站 IP 封禁或非法访问记录，请在 EdgeOne 控制台配置访问规则和查看日志", code: "UNSUPPORTED_FEATURE" }, 400)
+        }
         const before = referencedImages(current)
         const data = sanitizeData(patch, current)
         await writeData(data)
