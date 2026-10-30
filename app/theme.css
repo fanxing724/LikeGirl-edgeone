@@ -1,0 +1,75 @@
+/* Shared visual language for the public site, administration and setup. */
+:root {
+  --lg-paper: #fbf8f4;
+  --lg-surface: #fffefb;
+  --lg-ink: #3e3735;
+  --lg-muted: #847773;
+  --lg-rose: #ad5b64;
+  --lg-rose-hover: #914650;
+  --lg-tint: #f5e8e5;
+  --lg-line: #e9dfd7;
+  --lg-sage: #64796a;
+  --lg-radius: 20px;
+  --lg-shadow: 0 8px 32px #694c3c09;
+  --lg-font: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --lg-serif: "Iowan Old Style", "Palatino Linotype", "Songti SC", "STSong", serif;
+}
+body.lg-public, body.lg-admin, body.lg-setup {
+  background: var(--lg-paper);
+  color: var(--lg-ink);
+  font-family: var(--lg-font);
+  -webkit-font-smoothing: antialiased;
+  cursor: auto;
+}
+.lg-public a, .lg-admin a, .lg-setup a { color: var(--lg-rose); cursor: pointer; }
+.lg-public a:hover, .lg-admin a:hover, .lg-setup a:hover { color: var(--lg-rose-hover); }
+.lg-public button, .lg-admin button, .lg-setup button { cursor: pointer; font-family: var(--lg-font); }
+.lg-public input, .lg-public textarea, .lg-admin .form-control, .lg-setup input {
+  color: var(--lg-ink);
+  background: var(--lg-surface);
+  border: 1px solid var(--lg-line);
+  border-radius: 12px;
+  font-family: var(--lg-font);
+  font-size: 15px;
+}
+.lg-public input:focus, .lg-public textarea:focus, .lg-admin .form-control:focus, .lg-setup input:focus {
+  border-color: var(--lg-rose);
+  box-shadow: 0 0 0 3px #ad5b6414;
+  outline: none;
+}
+.lg-public :focus-visible, .lg-admin :focus-visible, .lg-setup :focus-visible {
+  outline: 2px solid var(--lg-rose);
+  outline-offset: 4px;
+}
+.lg-public ::selection, .lg-admin ::selection, .lg-setup ::selection { background: #ead1d2; color: var(--lg-ink); }
+.lg-public .alogo b { background: var(--lg-tint); color: var(--lg-rose); border-radius: 6px; }
+.lg-admin .btn, .lg-setup button, .lg-public .tijiao {
+  border-radius: 12px !important;
+  box-shadow: none;
+  font-weight: 600;
+  transition: background .18s ease, border-color .18s ease;
+}
+.lg-admin .btn-primary, .lg-setup button, .lg-public .tijiao {
+  color: white;
+  background: var(--lg-rose);
+  border: 1px solid var(--lg-rose);
+}
+.lg-admin .btn-primary:hover, .lg-setup button:hover, .lg-public .tijiao:hover {
+  color: white;
+  background: var(--lg-rose-hover);
+  border-color: var(--lg-rose-hover);
+}
+.lg-admin .btn:disabled, .lg-setup button:disabled, .lg-public button:disabled { opacity: .55; cursor: not-allowed; }
+.lg-setup .setup-card { background: var(--lg-surface); border: 1px solid var(--lg-line); box-shadow: var(--lg-shadow); border-radius: 24px; }
+.lg-setup .heart { background: var(--lg-tint); color: var(--lg-rose); }
+.lg-setup h1 { font-family: var(--lg-serif); color: var(--lg-ink); }
+.lg-setup .eyebrow { color: var(--lg-rose); }
+.lg-setup .intro, .lg-setup .hint, .lg-setup #setup-status { color: var(--lg-muted); }
+@media (prefers-reduced-motion: reduce) {
+  .lg-public *, .lg-admin *, .lg-setup * { animation: none !important; scroll-behavior: auto !important; transition: none !important; }
+}
+/* Notifications share the same palette across both surfaces. */
+.lg-public #toast-container > div,.lg-admin #toast-container > div { border-radius:14px; box-shadow:0 8px 24px #3e37351a; opacity:1; font-family:var(--lg-font); }
+.lg-public .toast-success,.lg-admin .toast-success { background-color:var(--lg-sage); }
+.lg-public .toast-error,.lg-admin .toast-error { background-color:var(--lg-rose-hover); }
+.lg-public .toast-info,.lg-admin .toast-info { background-color:#716e66; }

@@ -15,7 +15,7 @@ EdgeOne Node 云函数 + Pages Blob 持久化；服务器级访问控制和整�
   - `list.html` 恋爱清单（完成态样式 + 点击展开图片）
   - `about.html` 关于（BotUI 完整对话流程）
   - `app/common.js` 公共脚本：拉取 `/api/data`、注入原版页头/页脚 DOM、计时器、留言时间、HTML 白名单清洗、懒加载/悬浮按钮
-  - 复用 `Style/`（全部原版 CSS/JS/字体/图标）与 `Botui/`，不重新设计。
+  - 复用 `Style/` 与 `Botui/` 的功能资源，`app/theme.css` 为前后台和初始化页提供共用主题，`app/public.css` 与 `app/admin.css` 分别管理布局；无外部 Web 字体依赖。
 - **后台** `admin.html` + `app/admin.js`：沿用原项目栏目、表单和基础样式的 SPA，导航布局与交互由适配层自行管理，
   含仪表盘、基本/情侣/卡片/版权设置、DIY 代码、文章、相册、清单、留言、About 对话配置的完整增删改查。
 - **API** `node-functions/[[default]].js`：Node 云函数 catch-all，

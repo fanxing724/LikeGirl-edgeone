@@ -25,7 +25,7 @@
     var svg =
       "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>" +
       "<defs><linearGradient id='g' x1='0' y1='0' x2='1' y2='1'>" +
-      "<stop offset='0' stop-color='#ff5295'/><stop offset='1' stop-color='#b39ddb'/></linearGradient></defs>" +
+      "<stop offset='0' stop-color='#ad5b64'/><stop offset='1' stop-color='#c58d7b'/></linearGradient></defs>" +
       "<rect width='64' height='64' rx='32' fill='url(#g)'/>" +
       "<text x='32' y='43' font-size='30' text-anchor='middle' fill='#ffffff' font-family='sans-serif'>" + ch + "</text></svg>"
     return "data:image/svg+xml;utf8," + encodeURIComponent(svg)
@@ -127,12 +127,12 @@
       '<div id="lg-login"><div class="card"><div class="card-body text-center">' +
         '<div class="lg-login-heart">&#10084;</div>' +
         '<h4 class="header-title mb-1">管理后台</h4>' +
-        '<p class="lg-login-sub mb-3">LikeGirl CE · 愿得一心人 白头不相离</p>' +
+        '<p class="lg-login-sub mb-3">把两个人的小日子，好好收藏。</p>' +
         '<form id="lg-login-form">' +
-        '<div class="form-group mb-3"><input type="password" name="password" class="form-control" placeholder="管理员密码" required></div>' +
+        '<div class="form-group mb-3"><label class="sr-only" for="lg-admin-password">管理员密码</label><input id="lg-admin-password" type="password" name="password" class="form-control" placeholder="管理员密码" autocomplete="current-password" required></div>' +
         '<div class="form-group mb-3"><button class="btn btn-primary" type="submit">登 录</button></div>' +
         "</form>" +
-        '<p class="mb-0"><a href="/index.html">返回前台</a></p>' +
+        '<p class="mb-0"><a href="/index.html">返回我们的小站 ↗</a></p><p class="lg-login-caption">Our little days</p>' +
         "</div></div></div>"
     )
     $("#lg-login-form").on("submit", async function (e) {
@@ -166,6 +166,7 @@
       '<div class="navbar-custom topnav-navbar"><div class="container-fluid">' +
       '<a href="#dashboard" class="topnav-logo"><span class="topnav-logo-lg">' + esc(s.title) + '</span><span class="topnav-logo-sm">' + esc(s.title) + "</span></a>" +
       '<ul class="list-unstyled topbar-right-menu float-right mb-0">' +
+      '<li><a class="lg-view-site" href="/index.html">查看小站 ↗</a></li>' +
       '<li class="dropdown notification-list"><a class="nav-link" href="#settings"><i class="dripicons-gear noti-icon"></i></a></li>' +
       '<li class="dropdown notification-list"><a class="nav-link dropdown-toggle nav-user arrow-none mr-0" href="#settings"><span class="account-user-avatar"><img src="' + esc(ownerAvatar(s.userName, s.userQQ)) + '" alt="user-image" class="rounded-circle"></span>' +
       '<span><span class="account-user-name">' + esc(s.userName) + '</span><span class="account-position">操作</span></span></a></li>' +
@@ -219,6 +220,18 @@
     var c = $("#lg-content")
     var map = { dashboard: dashboard, settings: settings, messages: messages, stories: stories, photos: photos, wishes: wishes, about: about, info: info }
     ;(map[route] || dashboard)(c)
+    var labels = {
+      dashboard: ["小站日常", "每一条记录，都是一起走过的日子。"],
+      settings: ["小站设置", "让这里，多一点你们的样子。"],
+      messages: ["留言祝福", "收藏来访的心意，照看留言的角落。"],
+      stories: ["点点滴滴", "把平凡的一天，写成值得记住的故事。"],
+      photos: ["恋爱相册", "让闪闪发光的瞬间，有一个归处。"],
+      wishes: ["恋爱清单", "想一起做的事，一件一件慢慢完成。"],
+      about: ["关于我们", "用你们的语气，讲讲这个小站。"],
+      info: ["关于小站", "记录爱，也感谢让记录成为可能的人。"],
+    }
+    var heading = labels[route] || labels.dashboard
+    c.prepend('<div class="lg-workspace-heading"><div><span class="lg-workspace-eyebrow">OUR LITTLE DAYS</span><h1>' + heading[0] + '</h1><p>' + heading[1] + '</p></div><span class="lg-workspace-note">只属于你们的记录空间</span></div>')
   }
 
   /* -------------------- 仪表盘 -------------------- */

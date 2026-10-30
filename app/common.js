@@ -148,11 +148,15 @@
     if (!host) return
     var anim = s.animation ? "animated fadeInDown" : ""
     var blurOff = s.blur === false ? "Blurkg" : ""
+    var currentPath = location.pathname === "/" ? "/index.html" : location.pathname
+    if (currentPath === "/page.html") currentPath = "/little.html"
+    var navigation = [["/index.html", "我们的小站"], ["/little.html", "点点滴滴"], ["/loveImg.html", "恋爱相册"], ["/list.html", "恋爱清单"], ["/leaving.html", "留言祝福"], ["/about.html", "关于我们"]]
+      .map(function (item) { return '<a href="' + item[0] + '"' + (currentPath === item[0] ? ' aria-current="page"' : "") + '>' + item[1] + '</a>' }).join("")
     host.innerHTML =
       '<div class="header-wrap"><div class="header">' +
       '<div class="logo"><h1><a class="alogo" href="/index.html">' + logoHtml(s.logo) + "</a></h1></div>" +
       '<div class="word" data-tip="' + esc(s.writing) + '" data-tip-position="bottom"><span class="wenan">' + esc(s.writing) + "</span></div>" +
-      "</div></div>" +
+      '</div></div><nav class="lg-public-nav" aria-label="小站导航">' + navigation + '</nav>' +
       '<div class="bg-wrap"><div class="bg-img"><div class="central central-800">' +
       '<div class="middle ' + anim + " " + blurOff + '">' +
       '<div class="img-male"><img src="' + esc(qqAvatar(s.boyQQ, 640)) + '" draggable="false"><span>' + esc(s.boy) + "</span></div>" +
@@ -179,7 +183,8 @@
     if (!host) return
     var icp = s.icp ? '<p><img src="/Style/img/icp.svg"><a href="https://beian.miit.gov.cn/#/Integrated/index" target="_blank">' + esc(s.icp) + "</a></p>" : ""
     var copy = s.copyright ? "<p>" + esc(s.copyright) + "</p>" : ""
-    var foot = icp || copy ? '<div class="footer-warp"><div class="footer">' + icp + copy + "</div></div>" : ""
+    var foot = '<div class="footer-warp"><div class="footer">' + icp + copy +
+      '<div class="lg-footer-links"><span class="lg-footer-signature">Our little days</span><a href="/admin.html">管理小站</a></div></div></div>'
     host.innerHTML =
       '<div class="lg-sidebar"><ul>' +
       '<li class="lg-sidebar-item" title="返回顶部" id="lg-top"><svg class="lg-sidebar-icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg"><path d="M898.346667 932.693333c-9.088 9.088-18.176 9.088-31.744 4.565334L512.853333 738.133333l-354.346666 200.234667c-13.653333 4.522667-22.741333 4.522667-31.786667-4.522667-9.045333-9.045333-9.045333-18.133333-9.045333-27.221333l373.418666-835.626667c0.042667-9.045333 13.653333-13.653333 22.741334-13.653333 9.088 0 18.133333 9.045333 22.656 13.568l366.421333 839.125333c4.48 4.522667-0.042667 18.133333-4.608 22.698667z" fill="#ffffff"></path></svg></li>' +
@@ -228,7 +233,8 @@
     $(window).on("scroll touchstart touchmove", function () { if ($tip) $tip.hide() })
 
     // 卡片点击跳转
-    $(".card, .card-b").click(function () {
+    $(".card, .card-b").click(function (event) {
+      if ($(event.target).closest("a,button,input,textarea,select,video").length) return
       var link = $(this).find("a").get(0)
       if (link) link.click()
     })
@@ -283,11 +289,11 @@
       renderHeader(data)
       renderFooter(data)
       document.title = data.site.title + (window.LG.pageTitle ? " — " + window.LG.pageTitle : "")
-      initCommon()
       // 暴露给页面脚本的数据就绪回调
       if (typeof window.LG.onReady === "function") {
         try { window.LG.onReady(data) } catch (e) { console.error("[LikeGirl] onReady", e) }
       }
+      initCommon()
     })
   }
 
